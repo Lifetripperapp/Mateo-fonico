@@ -856,7 +856,7 @@ function renderSilaba() {
 }
 
 function selectSylaba(card, syl) {
-  const w=silabaWords[currentSilaba];
+  const w=silabasByTier[getTier()][currentSilaba];
   if(card.classList.contains('selected')) return;
   card.classList.add('selected');
   selectedSyllables.push(syl);
