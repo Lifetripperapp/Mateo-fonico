@@ -329,7 +329,7 @@ create policy "public delete" on sesiones for delete using (true);</pre>
 <div class="modal-overlay" id="modal-fonema">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('fonema')">✕</button>
-    <div class="modal-title">🔮 El Fonema Mago</div>
+    <div class="modal-title">🔮 El Fonema Mago <span id="fonema-tier-badge" style="font-size:0.7rem;font-family:'Nunito',sans-serif;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);vertical-align:middle;"></span></div>
     <div class="fonema-display">
       <div class="big-letter" id="gameLetterDisplay" style="color:var(--gold)">M</div>
       <div class="fonema-hint">¿Cuál empieza con este sonido?</div>
@@ -346,7 +346,7 @@ create policy "public delete" on sesiones for delete using (true);</pre>
 <div class="modal-overlay" id="modal-silabas">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('silabas')">✕</button>
-    <div class="modal-title">🧱 Constructor de Sílabas</div>
+    <div class="modal-title">🧱 Constructor de Sílabas <span id="silaba-tier-badge" style="font-size:0.7rem;font-family:'Nunito',sans-serif;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);vertical-align:middle;"></span></div>
     <div style="text-align:center;color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:8px" id="silabaTarget">Armá la palabra:</div>
     <div class="word-slots" id="wordSlots"></div>
     <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;text-align:center;margin:8px 0">Tocá las sílabas en orden:</div>
@@ -363,7 +363,7 @@ create policy "public delete" on sesiones for delete using (true);</pre>
 <div class="modal-overlay" id="modal-auto">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('auto')">✕</button>
-    <div class="modal-title">🚗 Misiones del Auto</div>
+    <div class="modal-title">🚗 Misiones del Auto <span id="auto-tier-badge" style="font-size:0.7rem;font-family:'Nunito',sans-serif;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);vertical-align:middle;"></span></div>
     <div id="autoMisionDisplay" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:16px;min-height:140px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;">
       <div style="font-size:2.5rem" id="autoEmoji">🎯</div>
       <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold)" id="autoMisionTitle">Misión:</div>
@@ -430,45 +430,159 @@ const levels = [
   {name:'Leyenda',    emoji:'👑',   min:40}
 ];
 
-// ─── GAME DATA ───────────────────────────────────────────────────────────────
-const fonemas = [
-  {letter:'M',color:'#e94560',options:[{emoji:'🍎',word:'manzana',correct:true},{emoji:'🌙',word:'luna',correct:false},{emoji:'🐸',word:'rana',correct:false},{emoji:'🚀',word:'nave',correct:false}]},
-  {letter:'P',color:'#a855f7',options:[{emoji:'🦆',word:'pato',correct:true},{emoji:'🐯',word:'tigre',correct:false},{emoji:'🌺',word:'rosa',correct:false},{emoji:'🎸',word:'guitarra',correct:false}]},
-  {letter:'S',color:'#4ecdc4',options:[{emoji:'☀️',word:'sol',correct:true},{emoji:'🐸',word:'rana',correct:false},{emoji:'🎈',word:'globo',correct:false},{emoji:'🐬',word:'delfín',correct:false}]},
-  {letter:'T',color:'#f5a623',options:[{emoji:'🍅',word:'tomate',correct:true},{emoji:'🌊',word:'ola',correct:false},{emoji:'🐋',word:'ballena',correct:false},{emoji:'🦁',word:'león',correct:false}]},
-  {letter:'L',color:'#60a5fa',options:[{emoji:'🌙',word:'luna',correct:true},{emoji:'🐢',word:'tortuga',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'🍕',word:'pizza',correct:false}]},
-  {letter:'N',color:'#34d399',options:[{emoji:'☁️',word:'nube',correct:true},{emoji:'🎸',word:'guitarra',correct:false},{emoji:'🏠',word:'casa',correct:false},{emoji:'🌵',word:'cactus',correct:false}]},
-  {letter:'D',color:'#f472b6',options:[{emoji:'🦷',word:'diente',correct:true},{emoji:'🐘',word:'elefante',correct:false},{emoji:'🚁',word:'helicóptero',correct:false},{emoji:'🌍',word:'mundo',correct:false}]},
-  {letter:'B',color:'#c084fc',options:[{emoji:'🍌',word:'banana',correct:true},{emoji:'🐮',word:'vaca',correct:false},{emoji:'🦊',word:'zorro',correct:false},{emoji:'🍓',word:'frutilla',correct:false}]},
-  {letter:'F',color:'#fb923c',options:[{emoji:'🌸',word:'flor',correct:true},{emoji:'🐠',word:'pez',correct:false},{emoji:'🌈',word:'arco iris',correct:false},{emoji:'🏔️',word:'montaña',correct:false}]},
-  {letter:'C',color:'#22d3ee',options:[{emoji:'🐴',word:'caballo',correct:true},{emoji:'🌙',word:'luna',correct:false},{emoji:'🐞',word:'mariquita',correct:false},{emoji:'🎭',word:'teatro',correct:false}]}
+// ─── GAME DATA (tiered by difficulty) ────────────────────────────────────────
+
+// getTier(): 0=básico(0-7★) 1=intermedio(8-24★) 2=avanzado(25+★)
+function getTier() {
+  if (state.stars >= 25) return 2;
+  if (state.stars >= 8)  return 1;
+  return 0;
+}
+const TIER_LABEL = ['🌱 Básico','⚡ Intermedio','🔥 Avanzado'];
+
+// FONEMA MAGO ─────────────────────────────────────────────────────────────────
+// Tier 0: solo M,P,S,T,L — consonantes que Mateo ya conoce, distractores muy distintos
+// Tier 1: todas las consonantes, distractores más variados
+// Tier 2: foco en fricativas (S/F/Z) y pares mínimos (B/P, D/T)
+const fonemasByTier = [
+  // ── Tier 0: básico ──
+  [
+    {letter:'M',color:'#e94560',options:[{emoji:'🍎',word:'manzana',correct:true},{emoji:'🌙',word:'luna',correct:false},{emoji:'🐸',word:'rana',correct:false},{emoji:'🚀',word:'nave',correct:false}]},
+    {letter:'P',color:'#a855f7',options:[{emoji:'🦆',word:'pato',correct:true},{emoji:'🐢',word:'tortuga',correct:false},{emoji:'🌺',word:'rosa',correct:false},{emoji:'🐬',word:'delfín',correct:false}]},
+    {letter:'S',color:'#4ecdc4',options:[{emoji:'☀️',word:'sol',correct:true},{emoji:'🐸',word:'rana',correct:false},{emoji:'🎈',word:'globo',correct:false},{emoji:'🦆',word:'pato',correct:false}]},
+    {letter:'T',color:'#f5a623',options:[{emoji:'🍅',word:'tomate',correct:true},{emoji:'🌊',word:'ola',correct:false},{emoji:'🐋',word:'ballena',correct:false},{emoji:'🍎',word:'manzana',correct:false}]},
+    {letter:'L',color:'#60a5fa',options:[{emoji:'🌙',word:'luna',correct:true},{emoji:'🐢',word:'tortuga',correct:false},{emoji:'🦆',word:'pato',correct:false},{emoji:'🍅',word:'tomate',correct:false}]},
+    {letter:'M',color:'#e94560',options:[{emoji:'🦋',word:'mariposa',correct:true},{emoji:'☀️',word:'sol',correct:false},{emoji:'🐢',word:'tortuga',correct:false},{emoji:'🌊',word:'ola',correct:false}]},
+    {letter:'P',color:'#a855f7',options:[{emoji:'🐟',word:'pez',correct:true},{emoji:'🌙',word:'luna',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'🐸',word:'rana',correct:false}]},
+    {letter:'S',color:'#4ecdc4',options:[{emoji:'🐸',word:'sapo',correct:true},{emoji:'🍅',word:'tomate',correct:false},{emoji:'🌙',word:'luna',correct:false},{emoji:'🦆',word:'pato',correct:false}]},
+    {letter:'T',color:'#f5a623',options:[{emoji:'🚂',word:'tren',correct:true},{emoji:'🌸',word:'flor',correct:false},{emoji:'🍎',word:'manzana',correct:false},{emoji:'☁️',word:'nube',correct:false}]},
+    {letter:'L',color:'#60a5fa',options:[{emoji:'📚',word:'libro',correct:true},{emoji:'🐸',word:'rana',correct:false},{emoji:'🍅',word:'tomate',correct:false},{emoji:'🚀',word:'nave',correct:false}]},
+  ],
+  // ── Tier 1: intermedio ──
+  [
+    {letter:'N',color:'#34d399',options:[{emoji:'☁️',word:'nube',correct:true},{emoji:'🎸',word:'guitarra',correct:false},{emoji:'🏠',word:'casa',correct:false},{emoji:'🌵',word:'cactus',correct:false}]},
+    {letter:'D',color:'#f472b6',options:[{emoji:'🦷',word:'diente',correct:true},{emoji:'🐘',word:'elefante',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'🚁',word:'helicóptero',correct:false}]},
+    {letter:'B',color:'#c084fc',options:[{emoji:'🍌',word:'banana',correct:true},{emoji:'🐮',word:'vaca',correct:false},{emoji:'🦊',word:'zorro',correct:false},{emoji:'🍓',word:'frutilla',correct:false}]},
+    {letter:'F',color:'#fb923c',options:[{emoji:'🌸',word:'flor',correct:true},{emoji:'🐠',word:'pez',correct:false},{emoji:'🌈',word:'arco iris',correct:false},{emoji:'🏔️',word:'montaña',correct:false}]},
+    {letter:'C',color:'#22d3ee',options:[{emoji:'🐴',word:'caballo',correct:true},{emoji:'🌙',word:'luna',correct:false},{emoji:'🐞',word:'mariquita',correct:false},{emoji:'🎭',word:'teatro',correct:false}]},
+    {letter:'M',color:'#e94560',options:[{emoji:'🦋',word:'mariposa',correct:true},{emoji:'🍌',word:'banana',correct:false},{emoji:'☁️',word:'nube',correct:false},{emoji:'🦷',word:'diente',correct:false}]},
+    {letter:'S',color:'#4ecdc4',options:[{emoji:'🐍',word:'serpiente',correct:true},{emoji:'🐴',word:'caballo',correct:false},{emoji:'🍌',word:'banana',correct:false},{emoji:'🦊',word:'zorro',correct:false}]},
+    {letter:'B',color:'#c084fc',options:[{emoji:'🚢',word:'barco',correct:true},{emoji:'🌸',word:'flor',correct:false},{emoji:'🐍',word:'serpiente',correct:false},{emoji:'🐢',word:'tortuga',correct:false}]},
+    {letter:'F',color:'#fb923c',options:[{emoji:'🦭',word:'foca',correct:true},{emoji:'🍌',word:'banana',correct:false},{emoji:'🚢',word:'barco',correct:false},{emoji:'☁️',word:'nube',correct:false}]},
+    {letter:'D',color:'#f472b6',options:[{emoji:'🎲',word:'dado',correct:true},{emoji:'🦭',word:'foca',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'🐴',word:'caballo',correct:false}]},
+  ],
+  // ── Tier 2: avanzado — pares mínimos y fricativas ──
+  [
+    {letter:'B',color:'#c084fc',options:[{emoji:'🍌',word:'banana',correct:true},{emoji:'🦆',word:'pato',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'🦭',word:'foca',correct:false}]},   // B vs P
+    {letter:'P',color:'#a855f7',options:[{emoji:'🦆',word:'pato',correct:true},{emoji:'🍌',word:'banana',correct:false},{emoji:'🎲',word:'dado',correct:false},{emoji:'☁️',word:'nube',correct:false}]},   // P vs B
+    {letter:'D',color:'#f472b6',options:[{emoji:'🎲',word:'dado',correct:true},{emoji:'🚂',word:'tren',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'🐍',word:'serpiente',correct:false}]}, // D vs T
+    {letter:'T',color:'#f5a623',options:[{emoji:'🚂',word:'tren',correct:true},{emoji:'🎲',word:'dado',correct:false},{emoji:'🍌',word:'banana',correct:false},{emoji:'☁️',word:'nube',correct:false}]},   // T vs D
+    {letter:'S',color:'#4ecdc4',options:[{emoji:'☀️',word:'sol',correct:true},{emoji:'🌸',word:'flor',correct:false},{emoji:'☁️',word:'nube',correct:false},{emoji:'🍌',word:'banana',correct:false}]},   // S vs F
+    {letter:'F',color:'#fb923c',options:[{emoji:'🌸',word:'flor',correct:true},{emoji:'☀️',word:'sol',correct:false},{emoji:'🐸',word:'sapo',correct:false},{emoji:'🎲',word:'dado',correct:false}]},     // F vs S
+    {letter:'B',color:'#c084fc',options:[{emoji:'🚢',word:'barco',correct:true},{emoji:'🦆',word:'pato',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'☀️',word:'sol',correct:false}]},
+    {letter:'S',color:'#4ecdc4',options:[{emoji:'🐍',word:'serpiente',correct:true},{emoji:'🌸',word:'flor',correct:false},{emoji:'🍌',word:'banana',correct:false},{emoji:'🎲',word:'dado',correct:false}]},
+    {letter:'F',color:'#fb923c',options:[{emoji:'🦭',word:'foca',correct:true},{emoji:'☀️',word:'sol',correct:false},{emoji:'🐸',word:'sapo',correct:false},{emoji:'🚂',word:'tren',correct:false}]},
+    {letter:'D',color:'#f472b6',options:[{emoji:'🦷',word:'diente',correct:true},{emoji:'🚂',word:'tren',correct:false},{emoji:'🐍',word:'serpiente',correct:false},{emoji:'🌸',word:'flor',correct:false}]},
+  ]
 ];
 
-const silabaWords = [
-  {word:'MAMÁ',  emoji:'👩',  syllables:['MA','MÁ']},  {word:'PAPÁ',  emoji:'👨',  syllables:['PA','PÁ']},
-  {word:'MAPA',  emoji:'🗺️', syllables:['MA','PA']},  {word:'PUMA',  emoji:'🐆',  syllables:['PU','MA']},
-  {word:'MASA',  emoji:'🍞',  syllables:['MA','SA']},  {word:'PISO',  emoji:'🏠',  syllables:['PI','SO']},
-  {word:'TOMA',  emoji:'🥤',  syllables:['TO','MA']},  {word:'PATO',  emoji:'🦆',  syllables:['PA','TO']},
-  {word:'MOTO',  emoji:'🏍️', syllables:['MO','TO']},  {word:'SALTO', emoji:'🦘',  syllables:['SAL','TO']},
-  {word:'PLATO', emoji:'🍽️', syllables:['PLA','TO']}, {word:'LOMA',  emoji:'⛰️', syllables:['LO','MA']}
+// CONSTRUCTOR DE SÍLABAS ───────────────────────────────────────────────────────
+// Tier 0: 2 sílabas, patrón CV-CV simple
+// Tier 1: 2-3 sílabas, algunas trabadas (PLA, TRO)
+// Tier 2: 3-4 sílabas, mayor complejidad
+const silabasByTier = [
+  // ── Tier 0: básico ──
+  [
+    {word:'MAMÁ',   emoji:'👩',   syllables:['MA','MÁ']},
+    {word:'PAPÁ',   emoji:'👨',   syllables:['PA','PÁ']},
+    {word:'PATO',   emoji:'🦆',   syllables:['PA','TO']},
+    {word:'MASA',   emoji:'🍞',   syllables:['MA','SA']},
+    {word:'MAPA',   emoji:'🗺️',  syllables:['MA','PA']},
+    {word:'PISO',   emoji:'🏠',   syllables:['PI','SO']},
+    {word:'TOMA',   emoji:'🥤',   syllables:['TO','MA']},
+    {word:'PUMA',   emoji:'🐆',   syllables:['PU','MA']},
+    {word:'MOTO',   emoji:'🏍️',  syllables:['MO','TO']},
+    {word:'LOMA',   emoji:'⛰️',  syllables:['LO','MA']},
+  ],
+  // ── Tier 1: intermedio ──
+  [
+    {word:'PLATO',  emoji:'🍽️',  syllables:['PLA','TO']},
+    {word:'SALTO',  emoji:'🦘',   syllables:['SAL','TO']},
+    {word:'CAMISA', emoji:'👔',   syllables:['CA','MI','SA']},
+    {word:'TOMATE', emoji:'🍅',   syllables:['TO','MA','TE']},
+    {word:'PALOMA', emoji:'🕊️',  syllables:['PA','LO','MA']},
+    {word:'PELOTA', emoji:'⚽',   syllables:['PE','LO','TA']},
+    {word:'BANANA', emoji:'🍌',   syllables:['BA','NA','NA']},
+    {word:'CABEZA', emoji:'🗣️',  syllables:['CA','BE','ZA']},
+    {word:'MALETA', emoji:'🧳',   syllables:['MA','LE','TA']},
+    {word:'BOTELLA',emoji:'🍶',   syllables:['BO','TE','LLA']},
+  ],
+  // ── Tier 2: avanzado ──
+  [
+    {word:'MARIPOSA', emoji:'🦋',  syllables:['MA','RI','PO','SA']},
+    {word:'ELEFANTE', emoji:'🐘',  syllables:['E','LE','FAN','TE']},
+    {word:'VENTANA',  emoji:'🪟',  syllables:['VEN','TA','NA']},
+    {word:'CAMELLO',  emoji:'🐪',  syllables:['CA','ME','LLO']},
+    {word:'TORTUGA',  emoji:'🐢',  syllables:['TOR','TU','GA']},
+    {word:'MURCIÉLAGO',emoji:'🦇', syllables:['MUR','CIÉ','LA','GO']},
+    {word:'DINOSAURIO',emoji:'🦕', syllables:['DI','NO','SAU','RIO']},
+    {word:'HELICÓPTERO',emoji:'🚁',syllables:['HE','LI','CÓP','TE','RO']},
+    {word:'COCODRILO', emoji:'🐊', syllables:['CO','CO','DRI','LO']},
+    {word:'CHOCOLATЕ', emoji:'🍫', syllables:['CHO','CO','LA','TE']},
+  ]
 ];
 
-const autoMisiones = [
-  {emoji:'🔤',title:'Misión Sonido Inicial',    text:'Decí 3 cosas que empiecen con el sonido /M/... ¡como mono, mano, mariposa!'},
-  {emoji:'🎵',title:'Misión Rima',              text:'¿Qué rima con GATO? ¡Dale, pensá! (pato, plato, zapato, rato...)'},
-  {emoji:'🕵️',title:'Misión Intruso',          text:'¿Cuál no empieza con /S/? ➡️ SOL — SAPO — LOBO — SILLA'},
-  {emoji:'🔢',title:'Misión Sílabas',           text:'¿Cuántas partes tiene MA-RI-PO-SA? Aplaudí una vez por cada sílaba.'},
-  {emoji:'🎯',title:'Misión Sonido Final',      text:'¿Con qué sonido termina CAMIÓN? ¿Y SAPO? ¿Y SOL?'},
-  {emoji:'🧩',title:'Misión Adivinar',          text:'Voy a decir los sonidos separados: /P/ - /A/ - /T/ - /O/. ¿Qué palabra es?'},
-  {emoji:'🌀',title:'Misión Al Revés',          text:'Si a SOL le sacamos el /S/, ¿qué queda? (OL). Si a MASA le sacamos la /M/, ¿qué queda? (ASA)'},
-  {emoji:'🏁',title:'Misión Recordar',          text:'Escuchá: PATO - SAPO - MANO. Ahora repetí las palabras en el mismo orden.'},
-  {emoji:'🔍',title:'Misión Consonante',        text:'¿Qué sonido está en MESA y también en MAMÁ? (la /M/)'},
-  {emoji:'🎪',title:'Misión Inventar',          text:'Inventá una palabra nueva que empiece con /T/. ¡Puede ser una que no existe!'},
-  {emoji:'🌊',title:'Misión Segmentación',      text:'Voy a palmear MÁ-TE-O. ¿Cuántos golpes son? Ahora vos: PÁ-JA-RO.'},
-  {emoji:'🎭',title:'Misión Cambiar',           text:'La palabra es PATO. Si cambio la /P/ por /G/, ¿qué queda? (GATO)'}
+// MISIONES DEL AUTO ────────────────────────────────────────────────────────────
+// Tier 0: identificar sonido inicial, contar sílabas simples
+// Tier 1: rimas, intruso, sonido final
+// Tier 2: manipulación fonémica, pares mínimos, deletreo inverso
+const misionesByTier = [
+  // ── Tier 0: básico ──
+  [
+    {emoji:'🔤',title:'Sonido Inicial /M/',     text:'Decí 3 palabras que empiecen con el sonido /M/. ¡Como MAMÁ, MANO, MONO!'},
+    {emoji:'🔤',title:'Sonido Inicial /P/',     text:'Decí 3 palabras que empiecen con el sonido /P/. ¡Como PAPÁ, PATO, PISO!'},
+    {emoji:'🔤',title:'Sonido Inicial /S/',     text:'Decí 2 palabras que empiecen con /S/. ¡Como SOL, SAPO, SILLA!'},
+    {emoji:'🔤',title:'Sonido Inicial /T/',     text:'Decí 2 palabras que empiecen con /T/. ¡Como TREN, TAZA, TORO!'},
+    {emoji:'🔢',title:'Contar Sílabas',         text:'Aplaudí las sílabas de PATO. ¿Cuántos aplausos? (PA-TO → 2)'},
+    {emoji:'🔢',title:'Contar Sílabas',         text:'Aplaudí las sílabas de MAMÁ. ¿Cuántos aplausos? (MA-MÁ → 2)'},
+    {emoji:'🔢',title:'Contar Sílabas',         text:'Aplaudí las sílabas de TOMATE. ¿Cuántos aplausos? (TO-MA-TE → 3)'},
+    {emoji:'👂',title:'Escuchar el Sonido',     text:'¿Qué sonido escuchás al principio de LUNA? ¡El sonido /L/!'},
+    {emoji:'👂',title:'Escuchar el Sonido',     text:'¿Qué sonido escuchás al principio de MOTO? ¡El sonido /M/!'},
+    {emoji:'🎯',title:'Adiviná la Letra',       text:'Voy a decir un sonido: /P/. ¿Qué animal empieza con /P/? (pato, pez, perro...)'},
+  ],
+  // ── Tier 1: intermedio ──
+  [
+    {emoji:'🎵',title:'Misión Rima',            text:'¿Qué rima con GATO? ¡Dale, pensá! (pato, plato, zapato, rato...)'},
+    {emoji:'🎵',title:'Misión Rima',            text:'¿Qué rima con SOL? (col, rol, gol, caracol...)'},
+    {emoji:'🕵️',title:'Misión Intruso',        text:'¿Cuál NO empieza con /S/? ➡️ SOL — SAPO — LOBO — SILLA'},
+    {emoji:'🕵️',title:'Misión Intruso',        text:'¿Cuál NO empieza con /M/? ➡️ MANO — MESA — PATO — MONO'},
+    {emoji:'🎯',title:'Sonido Final',           text:'¿Con qué sonido termina CAMIÓN? ¿Y SAPO? ¿Y SOL?'},
+    {emoji:'🔢',title:'Sílabas difíciles',      text:'Aplaudí: MA-RI-PO-SA. ¿Cuántos aplausos? (4). Ahora: DI-NO-SAU-RIO (4)'},
+    {emoji:'🏁',title:'Memoria Fonológica',     text:'Escuchá y repetí en orden: PATO — SAPO — MANO. ¿Podés?'},
+    {emoji:'🏁',title:'Memoria Fonológica',     text:'Escuchá y repetí: LUNA — TREN — MESA — SAPO. ¡Son 4 palabras!'},
+    {emoji:'🔍',title:'Sonido en Común',        text:'¿Qué sonido está en MESA y también en MAMÁ? (la /M/)'},
+    {emoji:'🎪',title:'Inventar Palabras',      text:'Inventá una palabra nueva que empiece con /T/. ¡Puede ser inventada!'},
+  ],
+  // ── Tier 2: avanzado ──
+  [
+    {emoji:'🧩',title:'Síntesis Fonémica',      text:'Uno los sonidos: /P/ - /A/ - /T/ - /O/. ¿Qué palabra es? (PATO). Ahora: /M/ - /E/ - /S/ - /A/'},
+    {emoji:'🌀',title:'Eliminar Sonido',        text:'Di PATO sin el /P/. ¿Qué queda? (ATO). Ahora di MESA sin la /M/ (ESA)'},
+    {emoji:'🌀',title:'Eliminar Sonido',        text:'Di TREN sin el /T/. ¿Qué queda? (REN). Ahora di SAPO sin la /S/ (APO)'},
+    {emoji:'🎭',title:'Cambiar Sonido',         text:'Di PATO. Ahora cambiá la /P/ por /G/. ¿Qué queda? (GATO)'},
+    {emoji:'🎭',title:'Cambiar Sonido',         text:'Di BESO. Ahora cambiá la /B/ por /P/. ¿Qué queda? (PESO) ¿Son distintas?'},
+    {emoji:'🎭',title:'Par Mínimo B/P',         text:'BOCA y POCA — ¿suenan igual o distinto al principio? ¡Diferente! /B/ vs /P/'},
+    {emoji:'🎭',title:'Par Mínimo D/T',         text:'DADO y TADO — ¿qué cambia? ¡El primer sonido! /D/ es con voz, /T/ es sin voz'},
+    {emoji:'🎭',title:'Par Mínimo S/F',         text:'SOL y FOL — ¿suenan igual al principio? ¡No! /S/ vs /F/. Ambas son "sopladas"'},
+    {emoji:'🌊',title:'Segmentación Completa',  text:'Palmá cada sonido de PATO: /P/ - /A/ - /T/ - /O/ → 4 sonidos. Ahora MESA'},
+    {emoji:'🔢',title:'Sílabas + Sonidos',      text:'MARIPOSA tiene 4 sílabas (MA-RI-PO-SA) y 8 sonidos. ¿Cuántos tiene ELEFANTE?'},
+  ]
 ];
 
-const CADENA_POOL = ['SAPO','PATO','TORO','OLLA','ARAÑA','LUNA','NUBE','ESTRELLA','AGUA','AVIÓN','MESA','ARCO','OSITO','OTTO','UVAS'];
+const CADENA_POOL_BY_TIER = [
+  ['SAPO','PATO','TORO','MESA','MANO','PUMA','LOMA','MASA','TOMA','MOTO'],
+  ['LUNA','NUBE','ESTRELLA','AVIÓN','ARAÑA','PLATO','SALTO','BANANA','PELOTA','CAMISA'],
+  ['MARIPOSA','ELEFANTE','COCODRILO','DINOSAURIO','VENTANA','TORTUGA','CAMELLO','HELICÓPTERO','MURCIÉLAGO','CHOCOLATЕ']
+];
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 let CFG = {
@@ -654,20 +768,21 @@ function confetti() {
 
 // ─── MODALS ───────────────────────────────────────────────────────────────────
 function openGame(name) {
-  if(name==='fonema')  initFonema();
-  if(name==='silabas') initSilaba();
-  if(name==='auto')    initAuto();
+  const badge = TIER_LABEL[getTier()];
+  if(name==='fonema')  { initFonema();  document.getElementById('fonema-tier-badge').textContent=badge; }
+  if(name==='silabas') { initSilaba();  document.getElementById('silaba-tier-badge').textContent=badge; }
+  if(name==='auto')    { initAuto();    document.getElementById('auto-tier-badge').textContent=badge; }
   if(name==='cadena')  initCadena();
   document.getElementById('modal-'+name).classList.add('open');
 }
 function closeModal(name) { document.getElementById('modal-'+name).classList.remove('open'); }
 
 // ─── FONEMA ───────────────────────────────────────────────────────────────────
-function initFonema()  { currentFonema=Math.floor(Math.random()*fonemas.length); renderFonema(); }
-function nextFonema()  { currentFonema=Math.floor(Math.random()*fonemas.length); renderFonema(); }
+function initFonema()  { const t=getTier(); currentFonema=Math.floor(Math.random()*fonemasByTier[t].length); renderFonema(); }
+function nextFonema()  { const t=getTier(); currentFonema=Math.floor(Math.random()*fonemasByTier[t].length); renderFonema(); }
 
 function renderFonema() {
-  const f=fonemas[currentFonema];
+  const f=fonemasByTier[getTier()][currentFonema];
   const disp=document.getElementById('gameLetterDisplay');
   disp.textContent=f.letter; disp.style.color=f.color;
   disp.style.animation='none'; void disp.offsetWidth;
@@ -706,13 +821,15 @@ function checkFonema(correct, btn, e, correctWord) {
   document.getElementById('nextFonemaBtn').style.display='inline-block';
 }
 
+function checkFonemaCurrentWord() { return fonemasByTier[getTier()][currentFonema]; }
+
 // ─── SÍLABAS ──────────────────────────────────────────────────────────────────
-function initSilaba() { currentSilaba=Math.floor(Math.random()*silabaWords.length); selectedSyllables=[]; renderSilaba(); }
-function nextSilaba() { currentSilaba=Math.floor(Math.random()*silabaWords.length); selectedSyllables=[]; renderSilaba(); }
-function resetSilaba(){ selectedSyllables=[]; renderSilaba(); }
+function initSilaba()  { const t=getTier(); currentSilaba=Math.floor(Math.random()*silabasByTier[t].length); selectedSyllables=[]; renderSilaba(); }
+function nextSilaba()  { const t=getTier(); currentSilaba=Math.floor(Math.random()*silabasByTier[t].length); selectedSyllables=[]; renderSilaba(); }
+function resetSilaba() { selectedSyllables=[]; renderSilaba(); }
 
 function renderSilaba() {
-  const w=silabaWords[currentSilaba];
+  const w=silabasByTier[getTier()][currentSilaba];
   document.getElementById('silabaTarget').innerHTML=`Armá la palabra: <strong style="color:var(--gold);font-size:1.1rem">${w.emoji} ${w.word}</strong>`;
   const slots=document.getElementById('wordSlots');
   slots.innerHTML='';
@@ -742,11 +859,12 @@ function selectSylaba(card, syl) {
   const slot=document.getElementById('slot-'+(selectedSyllables.length-1));
   if(slot){slot.textContent=syl;slot.classList.add('filled');}
   if(selectedSyllables.length===w.syllables.length){
+    const ww=silabasByTier[getTier()][currentSilaba];
     const formed=selectedSyllables.join('');
-    const target=w.syllables.join('');
+    const target=ww.syllables.join('');
     const fb=document.getElementById('silabaFeedback');
     if(formed===target){
-      fb.textContent=`¡${w.emoji} ${w.word}! ¡Lo armaste! 🎉`;
+      fb.textContent=`¡${ww.emoji} ${ww.word}! ¡Lo armaste! 🎉`;
       fb.className='feedback show ok';
       addStar(300,400);
       document.getElementById('nextSilabaBtn').style.display='inline-block';
@@ -766,10 +884,11 @@ function initAuto() {
   document.getElementById('autoEmoji').textContent='🎯';
 }
 function newAutoMision() {
+  const pool=misionesByTier[getTier()];
   let idx;
-  do{idx=Math.floor(Math.random()*autoMisiones.length);}while(idx===lastAutoMision&&autoMisiones.length>1);
+  do{idx=Math.floor(Math.random()*pool.length);}while(idx===lastAutoMision&&pool.length>1);
   lastAutoMision=idx;
-  const m=autoMisiones[idx];
+  const m=pool[idx];
   document.getElementById('autoEmoji').textContent=m.emoji;
   document.getElementById('autoMisionTitle').textContent=m.title;
   document.getElementById('autoMisionText').textContent=m.text;
@@ -783,8 +902,9 @@ function autoCorrect() {
 }
 
 // ─── CADENA ───────────────────────────────────────────────────────────────────
-function initCadena() { cadenaChain=[]; cadenaTurno=0; renderCadena(); }
-function cadenaReset() { cadenaChain=[]; cadenaTurno=0; renderCadena(); document.getElementById('cadenaFeedback').classList.remove('show'); }
+function initCadena() { cadenaChain=[]; cadenaTurno=0; cadenaPool=shuffle(CADENA_POOL_BY_TIER[getTier()]); renderCadena(); }
+let cadenaPool=[];
+function cadenaReset() { cadenaChain=[]; cadenaTurno=0; cadenaPool=shuffle(CADENA_POOL_BY_TIER[getTier()]); renderCadena(); document.getElementById('cadenaFeedback').classList.remove('show'); }
 
 function renderCadena() {
   document.getElementById('cadenaLastWord').textContent=cadenaChain.length?cadenaChain[cadenaChain.length-1]:'—';
@@ -806,7 +926,8 @@ function renderCadena() {
 }
 
 function cadenaAdd() {
-  cadenaChain.push(CADENA_POOL[cadenaChain.length % CADENA_POOL.length]);
+  if(!cadenaPool.length) cadenaPool=shuffle(CADENA_POOL_BY_TIER[getTier()]);
+  cadenaChain.push(cadenaPool[cadenaChain.length % cadenaPool.length]);
   cadenaTurno=1-cadenaTurno;
   addStar(200,300);
   renderCadena();
