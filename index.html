@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Aventura Fónica de Mateo</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+  :root {
+    --sky:#1a1a2e; --deep:#16213e; --card:#0f3460;
+    --accent:#e94560; --gold:#f5a623; --green:#4ecdc4;
+    --purple:#a855f7; --white:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito',sans-serif;background:var(--sky);min-height:100vh;overflow-x:hidden;color:var(--white);}
+  body::before{content:'';position:fixed;inset:0;background-image:
+    radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,0.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 40% 70%,rgba(255,255,255,0.6) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 60% 20%,rgba(255,255,255,0.9) 0%,transparent 100%),
+    radial-gradient(1px 1px at 80% 50%,rgba(255,255,255,0.7) 0%,transparent 100%),
+    radial-gradient(1px 1px at 10% 80%,rgba(255,255,255,0.5) 0%,transparent 100%),
+    radial-gradient(2px 2px at 90% 10%,rgba(255,255,255,0.8) 0%,transparent 100%),
+    radial-gradient(1px 1px at 50% 90%,rgba(255,255,255,0.6) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 30% 50%,rgba(255,255,255,0.7) 0%,transparent 100%);
+    pointer-events:none;z-index:0;}
+  .container{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:20px;}
+  .header{text-align:center;padding:20px 0 10px;}
+  .title{font-family:'Fredoka One',cursive;font-size:2.2rem;background:linear-gradient(135deg,var(--gold),var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:titlePulse 3s ease-in-out infinite;}
+  @keyframes titlePulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.2)}}
+  .hero-bar{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:16px 20px;margin:16px 0;backdrop-filter:blur(10px);}
+  .hero-avatar{font-size:3rem;animation:float 3s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .hero-info{flex:1;}
+  .hero-name{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--gold);}
+  .xp-bar-wrap{background:rgba(255,255,255,0.1);border-radius:20px;height:12px;margin-top:6px;overflow:hidden;}
+  .xp-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:20px;transition:width 0.6s cubic-bezier(.34,1.56,.64,1);}
+  .xp-text{font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:3px;}
+  .stars-display{text-align:center;}
+  .stars-display .count{font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--gold);}
+  .stars-display .label{font-size:0.7rem;color:rgba(255,255,255,0.5);display:block;}
+  .tabs{display:flex;gap:5px;margin:16px 0;}
+  .tab{flex:1;padding:9px 3px;border-radius:14px;border:2px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;font-weight:700;font-size:0.68rem;cursor:pointer;transition:all 0.25s;text-align:center;}
+  .tab:hover{border-color:rgba(255,255,255,0.3);color:white;}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:white;box-shadow:0 4px 20px rgba(233,69,96,0.4);}
+  .section{display:none;} .section.active{display:block;}
+  .game-card{background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:24px;margin-bottom:16px;backdrop-filter:blur(10px);position:relative;overflow:hidden;}
+  .game-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px;}
+  .card-rojo::before{background:var(--accent);} .card-verde::before{background:var(--green);} .card-oro::before{background:var(--gold);} .card-purple::before{background:var(--purple);}
+  .game-title{font-family:'Fredoka One',cursive;font-size:1.3rem;margin-bottom:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .badge{font-size:0.65rem;font-family:'Nunito',sans-serif;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;}
+  .badge-auto{background:rgba(245,166,35,0.2);color:var(--gold);border:1px solid var(--gold);}
+  .badge-mesa{background:rgba(78,205,196,0.2);color:var(--green);border:1px solid var(--green);}
+  .badge-ambos{background:rgba(168,85,247,0.2);color:var(--purple);border:1px solid var(--purple);}
+  .game-desc{color:rgba(255,255,255,0.7);font-size:0.88rem;line-height:1.5;margin-bottom:16px;}
+  .play-btn{background:linear-gradient(135deg,var(--accent),#c0392b);border:none;border-radius:14px;color:white;font-family:'Fredoka One',cursive;font-size:1rem;padding:12px 28px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(233,69,96,0.4);}
+  .play-btn:hover{transform:translateY(-2px);}
+  .play-btn:active{transform:translateY(0);}
+  .play-btn.verde{background:linear-gradient(135deg,var(--green),#27ae60);box-shadow:0 4px 15px rgba(78,205,196,0.4);}
+  .play-btn.oro{background:linear-gradient(135deg,var(--gold),#e67e22);box-shadow:0 4px 15px rgba(245,166,35,0.4);}
+  .play-btn.ghost{background:rgba(255,255,255,0.08);box-shadow:none;border:1px solid rgba(255,255,255,0.2);}
+  .play-btn.danger{background:linear-gradient(135deg,#7f1d1d,#991b1b);box-shadow:0 4px 15px rgba(153,27,27,0.4);}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(4px);}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--deep);border:2px solid rgba(255,255,255,0.15);border-radius:28px;padding:28px;width:100%;max-width:500px;animation:modalIn 0.3s cubic-bezier(.34,1.56,.64,1);position:relative;max-height:90vh;overflow-y:auto;}
+  @keyframes modalIn{from{transform:scale(0.8) translateY(40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+  .modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:36px;height:36px;color:white;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+  .modal-close:hover{background:rgba(255,255,255,0.2);}
+  .modal-title{font-family:'Fredoka One',cursive;font-size:1.5rem;margin-bottom:20px;color:var(--gold);}
+  .fonema-display{text-align:center;margin:10px 0 20px;}
+  .big-letter{font-family:'Fredoka One',cursive;font-size:6rem;line-height:1;animation:letterBounce 0.5s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes letterBounce{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+  .fonema-hint{font-size:0.9rem;color:rgba(255,255,255,0.6);margin-top:6px;}
+  .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+  .option-btn{background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:16px;padding:16px 12px;color:white;font-family:'Fredoka One',cursive;font-size:1.3rem;cursor:pointer;transition:all 0.2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .option-btn .opt-emoji{font-size:2rem;}
+  .option-btn .opt-word{font-size:1.15rem;font-family:'Fredoka One',cursive;color:white;letter-spacing:0.5px;}
+  .option-btn:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .option-btn.correct{background:rgba(78,205,196,0.3);border-color:var(--green);animation:correctPop 0.4s;}
+  .option-btn.wrong{background:rgba(233,69,96,0.3);border-color:var(--accent);animation:wrongShake 0.4s;}
+  @keyframes correctPop{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  @keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .feedback{text-align:center;padding:16px;border-radius:16px;margin-top:12px;font-family:'Fredoka One',cursive;font-size:1.3rem;display:none;}
+  .feedback.show{display:block;animation:modalIn 0.3s;}
+  .feedback.ok{background:rgba(78,205,196,0.2);color:var(--green);}
+  .feedback.fail{background:rgba(233,69,96,0.2);color:var(--accent);}
+  .score-burst{position:fixed;font-family:'Fredoka One',cursive;font-size:2rem;color:var(--gold);pointer-events:none;z-index:200;animation:burstUp 1s forwards;}
+  @keyframes burstUp{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(1.5);opacity:0}}
+  .syllable-display{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0;}
+  .syl-card{background:rgba(168,85,247,0.2);border:2px solid var(--purple);border-radius:14px;padding:14px 20px;font-family:'Fredoka One',cursive;font-size:2rem;cursor:pointer;transition:all 0.2s;min-width:70px;text-align:center;}
+  .syl-card:hover{transform:scale(1.05);background:rgba(168,85,247,0.35);}
+  .syl-card.selected{background:rgba(245,166,35,0.3);border-color:var(--gold);transform:scale(1.08);}
+  .word-slots{display:flex;gap:8px;justify-content:center;margin:16px 0;flex-wrap:wrap;}
+  .word-slot{min-width:70px;height:60px;border-bottom:3px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--green);transition:all 0.2s;}
+  .word-slot.filled{border-color:var(--green);}
+  .confetti-piece{position:fixed;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:300;animation:confettiFall 2s forwards;}
+  @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+  .session-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;}
+  .session-card:hover{border-color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);}
+  .session-date{font-size:0.72rem;color:rgba(255,255,255,0.4);min-width:80px;}
+  .session-bar-wrap{flex:1;background:rgba(255,255,255,0.08);border-radius:20px;height:10px;overflow:hidden;}
+  .session-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--green),var(--gold));}
+  .session-pct{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);min-width:44px;text-align:right;}
+  .session-stars{font-size:0.8rem;color:rgba(255,255,255,0.5);}
+  .chart-wrap{background:rgba(255,255,255,0.04);border-radius:16px;padding:16px;margin:12px 0;}
+  .chart-title{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--gold);margin-bottom:12px;}
+  canvas#evolutionChart{width:100%!important;max-height:180px;}
+  .stat-row{display:flex;gap:10px;margin:12px 0;}
+  .stat-box{flex:1;background:rgba(255,255,255,0.05);border-radius:14px;padding:12px;text-align:center;}
+  .stat-box .val{font-family:'Fredoka One',cursive;font-size:1.6rem;}
+  .stat-box .lbl{font-size:0.68rem;color:rgba(255,255,255,0.45);margin-top:2px;}
+  .reset-confirm{background:rgba(153,27,27,0.15);border:1px solid rgba(233,69,96,0.4);border-radius:16px;padding:16px;margin-top:12px;display:none;text-align:center;}
+  .reset-confirm.show{display:block;animation:modalIn 0.3s;}
+  .reset-confirm p{font-size:0.88rem;color:rgba(255,255,255,0.7);margin-bottom:12px;line-height:1.5;}
+  .detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:0.85rem;}
+  .detail-row:last-child{border-bottom:none;}
+  .detail-key{color:rgba(255,255,255,0.5);}
+  .detail-val{font-weight:700;color:var(--white);}
+  .tip-card{background:rgba(255,255,255,0.04);border-left:3px solid var(--purple);border-radius:0 12px 12px 0;padding:12px 16px;margin-bottom:10px;font-size:0.85rem;line-height:1.5;color:rgba(255,255,255,0.8);}
+  .tip-title{font-weight:800;color:var(--purple);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+
+  /* CONFIG */
+  .cfg-row{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);gap:12px;}
+  .cfg-row:last-of-type{border-bottom:none;}
+  .cfg-label{font-weight:700;font-size:0.9rem;}
+  .cfg-sub{font-size:0.72rem;color:rgba(255,255,255,0.35);margin-top:2px;}
+  .cfg-input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px;color:white;font-family:'Nunito',sans-serif;font-size:0.82rem;width:190px;flex-shrink:0;}
+  .cfg-input:focus{outline:none;border-color:var(--purple);}
+  .cfg-input::placeholder{color:rgba(255,255,255,0.25);}
+  .sync-pill{font-size:0.78rem;font-weight:700;padding:5px 12px;border-radius:20px;}
+  .sync-ok  {background:rgba(78,205,196,0.15);color:var(--green);border:1px solid var(--green);}
+  .sync-err {background:rgba(233,69,96,0.15);color:var(--accent);border:1px solid var(--accent);}
+  .sync-off {background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.1);}
+  pre.sql-box{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px;font-size:0.72rem;overflow-x:auto;margin:10px 0;line-height:1.6;color:rgba(255,255,255,0.7);}
+
+  /* cadena judge */
+  .judge-row{display:flex;gap:12px;justify-content:center;margin-top:14px;}
+  .judge-btn{flex:1;max-width:130px;padding:14px 8px;font-size:1.5rem;border-radius:14px;border:none;cursor:pointer;font-weight:800;transition:transform 0.12s;font-family:'Fredoka One',cursive;}
+  .judge-btn:active{transform:scale(0.95);}
+  .judge-btn span{display:block;font-size:0.72rem;margin-top:4px;font-family:'Nunito',sans-serif;}
+  .judge-ok{background:rgba(78,205,196,0.25);color:var(--green);border:2px solid var(--green);}
+  .judge-no{background:rgba(233,69,96,0.25);color:var(--accent);border:2px solid var(--accent);}
+
+  @media(max-width:480px){.title{font-size:1.6rem;}.big-letter{font-size:4.5rem;}.tab{font-size:0.6rem;padding:8px 2px;}.cfg-input{width:140px;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title">🚀 La Aventura Fónica</div>
+    <div style="font-size:0.8rem;color:rgba(255,255,255,0.4);margin-top:4px;">El juego de <span id="heroNameTitle">Mateo</span></div>
+  </div>
+
+  <!-- HERO BAR -->
+  <div class="hero-bar">
+    <div class="hero-avatar" id="heroEmoji">🧙‍♂️</div>
+    <div class="hero-info">
+      <div class="hero-name" id="heroNameBar">Mateo el Explorador</div>
+      <div class="xp-bar-wrap"><div class="xp-bar" id="xpBar" style="width:0%"></div></div>
+      <div class="xp-text" id="xpText">0 / 100 XP</div>
+    </div>
+    <div class="stars-display">
+      <div class="count">⭐ <span id="starCount">0</span></div>
+      <div class="label">total</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('juegos',this)">🎮 Juegos</button>
+    <button class="tab" onclick="showTab('sesion',this)">📊 Sesión</button>
+    <button class="tab" onclick="showTab('historial',this)">📅 Historial</button>
+    <button class="tab" onclick="showTab('consejos',this)">💡 Familia</button>
+    <button class="tab" onclick="showTab('config',this)">⚙️ Config</button>
+  </div>
+
+  <!-- ====== TAB: JUEGOS ====== -->
+  <div class="section active" id="tab-juegos">
+    <div class="game-card card-rojo">
+      <div class="game-title">🔮 El Fonema Mago <span class="badge badge-ambos">Mesa & Auto</span></div>
+      <div class="game-desc">Aparece una letra y Mateo elige cuál imagen empieza con ese sonido.</div>
+      <button class="play-btn" onclick="openGame('fonema')">¡Jugar! ✨</button>
+    </div>
+    <div class="game-card card-purple">
+      <div class="game-title">🧱 Constructor de Sílabas <span class="badge badge-mesa">Mesa</span></div>
+      <div class="game-desc">Tocá las sílabas en orden para armar la palabra. Como LEGO pero con letras.</div>
+      <button class="play-btn" style="background:linear-gradient(135deg,var(--purple),#7c3aed);box-shadow:0 4px 15px rgba(168,85,247,0.4)" onclick="openGame('silabas')">¡Construir! 🧱</button>
+    </div>
+    <div class="game-card card-verde">
+      <div class="game-title">🚗 Misiones del Auto <span class="badge badge-auto">Solo Auto</span></div>
+      <div class="game-desc">Sin pantalla. Papá/Mamá dan la misión oral y Mateo responde en voz alta.</div>
+      <button class="play-btn verde" onclick="openGame('auto')">Ver misiones 🗺️</button>
+    </div>
+    <div class="game-card card-oro">
+      <div class="game-title">⛓️ La Cadena Mágica <span class="badge badge-ambos">Mesa & Auto</span></div>
+      <div class="game-desc">Turnos entre Mateo y adulto. Cada palabra empieza con el último sonido de la anterior.</div>
+      <button class="play-btn oro" onclick="openGame('cadena')">¡Encadenar! ⛓️</button>
+    </div>
+  </div>
+
+  <!-- ====== TAB: SESIÓN ACTUAL ====== -->
+  <div class="section" id="tab-sesion">
+    <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);margin-bottom:12px;">📊 Sesión de hoy</div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="val" id="s-correct" style="color:var(--green)">0</div><div class="lbl">✅ Correctas</div></div>
+      <div class="stat-box"><div class="val" id="s-wrong" style="color:var(--accent)">0</div><div class="lbl">❌ Intentos</div></div>
+      <div class="stat-box"><div class="val" id="s-pct" style="color:var(--gold)">—</div><div class="lbl">🎯 Precisión</div></div>
+      <div class="stat-box"><div class="val" id="s-streak" style="color:var(--purple)">0</div><div class="lbl">🔥 Racha</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="val" id="s-stars" style="color:var(--gold)">0</div><div class="lbl">⭐ Estrellas</div></div>
+      <div class="stat-box"><div class="val" id="s-time" style="color:var(--green)">0m</div><div class="lbl">⏱️ Tiempo</div></div>
+      <div class="stat-box"><div class="val" id="s-games" style="color:var(--purple)">0</div><div class="lbl">🎮 Rondas</div></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="play-btn verde" onclick="saveSession()">💾 Guardar sesión</button>
+      <button class="play-btn ghost" onclick="showResetConfirm()">🔄 Resetear sesión</button>
+    </div>
+    <div class="reset-confirm" id="resetConfirm">
+      <p>¿Resetear los datos de esta sesión?<br><span style="color:var(--accent);font-size:0.8rem;">El historial guardado no se borra.</span></p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="play-btn danger" onclick="resetSession()">Sí, resetear</button>
+        <button class="play-btn ghost" onclick="hideResetConfirm()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TAB: HISTORIAL ====== -->
+  <div class="section" id="tab-historial">
+    <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);margin-bottom:8px;">📅 Evolución de Mateo</div>
+    <div class="chart-wrap">
+      <div class="chart-title">Precisión por sesión (%)</div>
+      <canvas id="evolutionChart" height="160"></canvas>
+      <div id="noDataMsg" style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.85rem;padding:20px 0;display:none;">Aún no hay sesiones guardadas</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="val" id="h-sessions" style="color:var(--green)">0</div><div class="lbl">📅 Sesiones</div></div>
+      <div class="stat-box"><div class="val" id="h-stars" style="color:var(--gold)">0</div><div class="lbl">⭐ Total</div></div>
+      <div class="stat-box"><div class="val" id="h-avgpct" style="color:var(--purple)">—</div><div class="lbl">🎯 Media</div></div>
+    </div>
+    <div style="font-family:'Fredoka One',cursive;font-size:0.95rem;color:rgba(255,255,255,0.5);margin:12px 0 8px;">Sesiones recientes</div>
+    <div id="sessionList"></div>
+    <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
+      <button class="play-btn ghost" style="font-size:0.8rem;padding:8px 18px;" onclick="showDeleteAllConfirm()">🗑️ Borrar todo el historial</button>
+      <div class="reset-confirm" id="deleteAllConfirm">
+        <p>¿Borrar <strong>todas</strong> las sesiones guardadas?<br><span style="color:var(--accent);font-size:0.8rem;">Esta acción no se puede deshacer.</span></p>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button class="play-btn danger" onclick="deleteAllHistory()">Sí, borrar todo</button>
+          <button class="play-btn ghost" onclick="hideDeleteAllConfirm()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TAB: FAMILIA ====== -->
+  <div class="section" id="tab-consejos">
+    <div class="tip-card"><div class="tip-title">⏱️ Duración ideal</div>10-15 minutos por sesión. Parar ANTES de que se canse, siempre con final positivo.</div>
+    <div class="tip-card"><div class="tip-title">🎯 Una instrucción a la vez</div>Esperar que ejecute cada instrucción antes de dar la siguiente. Nunca varias juntas.</div>
+    <div class="tip-card"><div class="tip-title">🔊 Pronunciar el SONIDO, no el nombre</div>No decir "eme" — decir /m/ como el sonido real. Los nombres de letras confunden.</div>
+    <div class="tip-card"><div class="tip-title">🏆 Corrección positiva siempre</div>"¡Casi! Era /s/ de sapo 🐸" es mejor que "no, incorrecto". Mantener el tono de juego.</div>
+    <div class="tip-card"><div class="tip-title">🚗 Las Misiones del Auto son las más valiosas</div>Sin pantalla, el canal auditivo trabaja más. El movimiento tiene efecto regulador en el sistema nervioso. Ideal para el notch 4kHz de Mateo.</div>
+    <div class="tip-card"><div class="tip-title">🎧 Considerar el oído de Mateo</div>Mateo tiene mayor dificultad con fricativas (/s/, /f/, /z/) especialmente en el oído derecho. Pronunciarlas más despacio, hablar cerca de su oído izquierdo.</div>
+    <div class="tip-card"><div class="tip-title">📅 Frecuencia</div>4-5 veces por semana, 10-15 min. La constancia supera la intensidad.</div>
+    <div class="tip-card"><div class="tip-title">📊 Leer el historial</div>Una precisión creciente semana a semana es la señal más importante. No comparar sesiones aisladas. Compartir pantalla "Historial" con la fonoaudióloga.</div>
+  </div>
+
+  <!-- ====== TAB: CONFIG ====== -->
+  <div class="section" id="tab-config">
+
+    <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);margin-bottom:14px;">⚙️ Configuración</div>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:20px;margin-bottom:16px;">
+      <div class="cfg-row">
+        <div><div class="cfg-label">Nombre del niño</div><div class="cfg-sub">Aparece en el saludo</div></div>
+        <input type="text" class="cfg-input" id="cfg-name" placeholder="Mateo" oninput="saveConfig()">
+      </div>
+      <div class="cfg-row">
+        <div><div class="cfg-label">Supabase URL</div><div class="cfg-sub">https://xxx.supabase.co</div></div>
+        <input type="text" class="cfg-input" id="cfg-sb-url" placeholder="https://..." oninput="saveConfig()">
+      </div>
+      <div class="cfg-row">
+        <div><div class="cfg-label">Anon Key</div><div class="cfg-sub">Clave pública del proyecto</div></div>
+        <input type="text" class="cfg-input" id="cfg-sb-key" placeholder="eyJhb..." oninput="saveConfig()">
+      </div>
+      <div class="cfg-row" style="border-bottom:none">
+        <div class="cfg-label">Estado Supabase</div>
+        <div id="sync-status" class="sync-pill sync-off">⚫ Sin configurar</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+        <button class="play-btn" onclick="testSupabase()">🔗 Probar conexión</button>
+        <button class="play-btn ghost" onclick="confirmResetRPG()" style="font-size:0.85rem;padding:10px 16px;">⚠️ Resetear nivel y XP</button>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:20px;">
+      <div style="font-family:'Fredoka One',cursive;color:var(--gold);margin-bottom:12px;">📖 Cómo configurar Supabase (gratis)</div>
+      <div style="font-size:0.83rem;color:rgba(255,255,255,0.7);line-height:1.7;">
+        <p>1. Crear cuenta en <strong style="color:white">supabase.com</strong></p>
+        <p>2. Crear un nuevo proyecto</p>
+        <p>3. En el Editor SQL, ejecutar:</p>
+        <pre class="sql-box">create table sesiones (
+  id         bigserial primary key,
+  created_at timestamptz default now(),
+  fecha      bigint,
+  correct    integer default 0,
+  wrong      integer default 0,
+  total      integer default 0,
+  pct        integer default 0,
+  stars      integer default 0,
+  streak     integer default 0,
+  games      integer default 0,
+  duration   bigint  default 0
+);
+alter table sesiones enable row level security;
+create policy "public read"   on sesiones for select using (true);
+create policy "public insert" on sesiones for insert with check (true);
+create policy "public delete" on sesiones for delete using (true);</pre>
+        <p>4. Ir a <strong style="color:white">Settings → API</strong></p>
+        <p>5. Copiar <strong style="color:white">Project URL</strong> y <strong style="color:white">anon public key</strong></p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ========== MODALES JUEGOS ========== -->
+
+<!-- FONEMA -->
+<div class="modal-overlay" id="modal-fonema">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('fonema')">✕</button>
+    <div class="modal-title">🔮 El Fonema Mago</div>
+    <div class="fonema-display">
+      <div class="big-letter" id="gameLetterDisplay" style="color:var(--gold)">M</div>
+      <div class="fonema-hint">¿Cuál empieza con este sonido?</div>
+    </div>
+    <div class="options-grid" id="fonemaOptions"></div>
+    <div class="feedback" id="fonemaFeedback"></div>
+    <div style="text-align:center;margin-top:12px;">
+      <button class="play-btn" id="nextFonemaBtn" onclick="nextFonema()" style="display:none">Siguiente ➡️</button>
+    </div>
+  </div>
+</div>
+
+<!-- SILABAS -->
+<div class="modal-overlay" id="modal-silabas">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('silabas')">✕</button>
+    <div class="modal-title">🧱 Constructor de Sílabas</div>
+    <div style="text-align:center;color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:8px" id="silabaTarget">Armá la palabra:</div>
+    <div class="word-slots" id="wordSlots"></div>
+    <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;text-align:center;margin:8px 0">Tocá las sílabas en orden:</div>
+    <div class="syllable-display" id="silabaPieces"></div>
+    <div class="feedback" id="silabaFeedback"></div>
+    <div style="text-align:center;margin-top:12px;display:flex;gap:8px;justify-content:center;">
+      <button class="play-btn" id="nextSilabaBtn" onclick="nextSilaba()" style="display:none">Siguiente ➡️</button>
+      <button class="play-btn ghost" onclick="resetSilaba()">Borrar 🗑️</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTO -->
+<div class="modal-overlay" id="modal-auto">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('auto')">✕</button>
+    <div class="modal-title">🚗 Misiones del Auto</div>
+    <div id="autoMisionDisplay" style="background:rgba(255,255,255,0.06);border-radius:16px;padding:20px;margin-bottom:16px;min-height:140px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;">
+      <div style="font-size:2.5rem" id="autoEmoji">🎯</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold)" id="autoMisionTitle">Misión:</div>
+      <div style="font-size:0.9rem;color:rgba(255,255,255,0.8);line-height:1.5" id="autoMisionText">Tocá "Nueva misión" para comenzar</div>
+    </div>
+    <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:14px;">Papá/Mamá lee en voz alta — Mateo responde</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="play-btn verde" onclick="newAutoMision()">Nueva misión 🎲</button>
+      <button class="play-btn oro" onclick="autoCorrect()">⭐ ¡Correcto!</button>
+    </div>
+  </div>
+</div>
+
+<!-- CADENA -->
+<div class="modal-overlay" id="modal-cadena">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('cadena')">✕</button>
+    <div class="modal-title">⛓️ La Cadena Mágica</div>
+    <div style="background:rgba(255,255,255,0.06);border-radius:16px;padding:20px;text-align:center;margin-bottom:12px;">
+      <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;margin-bottom:6px;">Última palabra:</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:2.5rem;color:var(--green)" id="cadenaLastWord">—</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;margin-top:6px;">
+        Siguiente empieza con: <span style="color:var(--gold);font-weight:800" id="cadenaNextSound">—</span>
+      </div>
+    </div>
+    <div id="cadenaChain" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;margin-bottom:12px;justify-content:center;"></div>
+    <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:4px;text-align:center;">
+      Turno: <span style="color:var(--gold);font-weight:800" id="cadenaTurnoLabel">Mateo</span>
+    </div>
+    <div class="judge-row">
+      <button class="judge-btn judge-ok" onclick="cadenaAdd()">✅<span>¡Correcto!</span></button>
+      <button class="judge-btn judge-no" onclick="cadenaFail()">❌<span>No puede…</span></button>
+    </div>
+    <div style="text-align:center;margin-top:10px;">
+      <button class="play-btn oro" style="font-size:0.85rem;padding:9px 20px;" onclick="cadenaReset()">🔄 Nueva cadena</button>
+    </div>
+    <div id="cadenaFeedback" class="feedback"></div>
+  </div>
+</div>
+
+<!-- DETALLE SESIÓN -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('detail')">✕</button>
+    <div class="modal-title" id="detailTitle">📅 Sesión</div>
+    <div id="detailContent"></div>
+    <div style="margin-top:16px;text-align:center;">
+      <button class="play-btn danger" onclick="deleteSession()">🗑️ Borrar esta sesión</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STORAGE KEY ────────────────────────────────────────────────────────────
+const STORE_KEY = 'mateo_fonico_v3';
+
+// ─── LEVELS ─────────────────────────────────────────────────────────────────
+const levels = [
+  {name:'Explorador', emoji:'🧙‍♂️', min:0},
+  {name:'Aprendiz',   emoji:'🌟',   min:3},
+  {name:'Guardián',   emoji:'🛡️',  min:8},
+  {name:'Campeón',    emoji:'⚔️',  min:15},
+  {name:'Maestro',    emoji:'🏆',   min:25},
+  {name:'Leyenda',    emoji:'👑',   min:40}
+];
+
+// ─── GAME DATA ───────────────────────────────────────────────────────────────
+const fonemas = [
+  {letter:'M',color:'#e94560',options:[{emoji:'🍎',word:'manzana',correct:true},{emoji:'🌙',word:'luna',correct:false},{emoji:'🐸',word:'rana',correct:false},{emoji:'🚀',word:'nave',correct:false}]},
+  {letter:'P',color:'#a855f7',options:[{emoji:'🦆',word:'pato',correct:true},{emoji:'🐯',word:'tigre',correct:false},{emoji:'🌺',word:'rosa',correct:false},{emoji:'🎸',word:'guitarra',correct:false}]},
+  {letter:'S',color:'#4ecdc4',options:[{emoji:'☀️',word:'sol',correct:true},{emoji:'🐸',word:'rana',correct:false},{emoji:'🎈',word:'globo',correct:false},{emoji:'🐬',word:'delfín',correct:false}]},
+  {letter:'T',color:'#f5a623',options:[{emoji:'🍅',word:'tomate',correct:true},{emoji:'🌊',word:'ola',correct:false},{emoji:'🐋',word:'ballena',correct:false},{emoji:'🦁',word:'león',correct:false}]},
+  {letter:'L',color:'#60a5fa',options:[{emoji:'🌙',word:'luna',correct:true},{emoji:'🐢',word:'tortuga',correct:false},{emoji:'🌸',word:'flor',correct:false},{emoji:'🍕',word:'pizza',correct:false}]},
+  {letter:'N',color:'#34d399',options:[{emoji:'☁️',word:'nube',correct:true},{emoji:'🎸',word:'guitarra',correct:false},{emoji:'🏠',word:'casa',correct:false},{emoji:'🌵',word:'cactus',correct:false}]},
+  {letter:'D',color:'#f472b6',options:[{emoji:'🦷',word:'diente',correct:true},{emoji:'🐘',word:'elefante',correct:false},{emoji:'🚁',word:'helicóptero',correct:false},{emoji:'🌍',word:'mundo',correct:false}]},
+  {letter:'B',color:'#c084fc',options:[{emoji:'🍌',word:'banana',correct:true},{emoji:'🐮',word:'vaca',correct:false},{emoji:'🦊',word:'zorro',correct:false},{emoji:'🍓',word:'frutilla',correct:false}]},
+  {letter:'F',color:'#fb923c',options:[{emoji:'🌸',word:'flor',correct:true},{emoji:'🐠',word:'pez',correct:false},{emoji:'🌈',word:'arco iris',correct:false},{emoji:'🏔️',word:'montaña',correct:false}]},
+  {letter:'C',color:'#22d3ee',options:[{emoji:'🐴',word:'caballo',correct:true},{emoji:'🌙',word:'luna',correct:false},{emoji:'🐞',word:'mariquita',correct:false},{emoji:'🎭',word:'teatro',correct:false}]}
+];
+
+const silabaWords = [
+  {word:'MAMÁ',  emoji:'👩',  syllables:['MA','MÁ']},  {word:'PAPÁ',  emoji:'👨',  syllables:['PA','PÁ']},
+  {word:'MAPA',  emoji:'🗺️', syllables:['MA','PA']},  {word:'PUMA',  emoji:'🐆',  syllables:['PU','MA']},
+  {word:'MASA',  emoji:'🍞',  syllables:['MA','SA']},  {word:'PISO',  emoji:'🏠',  syllables:['PI','SO']},
+  {word:'TOMA',  emoji:'🥤',  syllables:['TO','MA']},  {word:'PATO',  emoji:'🦆',  syllables:['PA','TO']},
+  {word:'MOTO',  emoji:'🏍️', syllables:['MO','TO']},  {word:'SALTO', emoji:'🦘',  syllables:['SAL','TO']},
+  {word:'PLATO', emoji:'🍽️', syllables:['PLA','TO']}, {word:'LOMA',  emoji:'⛰️', syllables:['LO','MA']}
+];
+
+const autoMisiones = [
+  {emoji:'🔤',title:'Misión Sonido Inicial',    text:'Decí 3 cosas que empiecen con el sonido /M/... ¡como mono, mano, mariposa!'},
+  {emoji:'🎵',title:'Misión Rima',              text:'¿Qué rima con GATO? ¡Dale, pensá! (pato, plato, zapato, rato...)'},
+  {emoji:'🕵️',title:'Misión Intruso',          text:'¿Cuál no empieza con /S/? ➡️ SOL — SAPO — LOBO — SILLA'},
+  {emoji:'🔢',title:'Misión Sílabas',           text:'¿Cuántas partes tiene MA-RI-PO-SA? Aplaudí una vez por cada sílaba.'},
+  {emoji:'🎯',title:'Misión Sonido Final',      text:'¿Con qué sonido termina CAMIÓN? ¿Y SAPO? ¿Y SOL?'},
+  {emoji:'🧩',title:'Misión Adivinar',          text:'Voy a decir los sonidos separados: /P/ - /A/ - /T/ - /O/. ¿Qué palabra es?'},
+  {emoji:'🌀',title:'Misión Al Revés',          text:'Si a SOL le sacamos el /S/, ¿qué queda? (OL). Si a MASA le sacamos la /M/, ¿qué queda? (ASA)'},
+  {emoji:'🏁',title:'Misión Recordar',          text:'Escuchá: PATO - SAPO - MANO. Ahora repetí las palabras en el mismo orden.'},
+  {emoji:'🔍',title:'Misión Consonante',        text:'¿Qué sonido está en MESA y también en MAMÁ? (la /M/)'},
+  {emoji:'🎪',title:'Misión Inventar',          text:'Inventá una palabra nueva que empiece con /T/. ¡Puede ser una que no existe!'},
+  {emoji:'🌊',title:'Misión Segmentación',      text:'Voy a palmear MÁ-TE-O. ¿Cuántos golpes son? Ahora vos: PÁ-JA-RO.'},
+  {emoji:'🎭',title:'Misión Cambiar',           text:'La palabra es PATO. Si cambio la /P/ por /G/, ¿qué queda? (GATO)'}
+];
+
+const CADENA_POOL = ['SAPO','PATO','TORO','OLLA','ARAÑA','LUNA','NUBE','ESTRELLA','AGUA','AVIÓN','MESA','ARCO','OSITO','OTTO','UVAS'];
+
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+let CFG = {name:'Mateo', sbUrl:'', sbKey:''};
+
+function saveConfig() {
+  CFG.name  = document.getElementById('cfg-name').value.trim() || 'Mateo';
+  CFG.sbUrl = document.getElementById('cfg-sb-url').value.trim();
+  CFG.sbKey = document.getElementById('cfg-sb-key').value.trim();
+  localStorage.setItem('mateo_cfg', JSON.stringify(CFG));
+  document.getElementById('heroNameTitle').textContent = CFG.name;
+  document.getElementById('heroNameBar').textContent   = CFG.name + ' el ' + getCurrentLevel().name;
+}
+
+function loadConfig() {
+  try {
+    const s = localStorage.getItem('mateo_cfg');
+    if (s) CFG = JSON.parse(s);
+  } catch(e) {}
+  document.getElementById('cfg-name').value   = CFG.name;
+  document.getElementById('cfg-sb-url').value = CFG.sbUrl;
+  document.getElementById('cfg-sb-key').value = CFG.sbKey;
+  document.getElementById('heroNameTitle').textContent = CFG.name;
+}
+
+function confirmResetRPG() {
+  if (confirm('¿Resetear nivel y XP? El historial de sesiones no se borra.')) {
+    state.stars = 0;
+    saveData();
+    updateHero();
+    alert('Progreso reseteado.');
+  }
+}
+
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+let sbClient = null;
+
+async function initSupabase() {
+  if (!CFG.sbUrl || !CFG.sbKey || CFG.sbUrl.includes('YOUR')) return;
+  try {
+    sbClient = supabase.createClient(CFG.sbUrl, CFG.sbKey);
+    const {data, error} = await sbClient
+      .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50);
+    if (error) throw error;
+    sessions = data || [];
+    setSyncStatus('ok', `🟢 ${sessions.length} sesiones`);
+  } catch(e) {
+    console.error('Supabase:', e);
+    setSyncStatus('err', '🔴 ' + (e.message || 'Error'));
+    sbClient = null;
+  }
+}
+
+async function testSupabase() {
+  saveConfig();
+  setSyncStatus('off', '🔄 Conectando…');
+  sbClient = null;
+  await initSupabase();
+}
+
+function setSyncStatus(type, msg) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  el.className = 'sync-pill sync-' + type;
+  el.textContent = msg;
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let state = {stars:0, correct:0, wrong:0, streak:0, games:0, sessionStart:Date.now()};
+let sessions = [];
+let selectedSessionIdx = null;
+let currentFonema = 0;
+let currentSilaba = 0;
+let selectedSyllables = [];
+let lastAutoMision = -1;
+let cadenaChain = [];
+let cadenaTurno = 0;
+
+// ─── PERSISTENCE ──────────────────────────────────────────────────────────────
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      state.stars = d.stars || 0;
+      if (!sbClient) sessions = d.sessions || [];
+    }
+  } catch(e) {}
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({stars:state.stars, sessions}));
+  } catch(e) {}
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+function fmtTime(ms) {
+  const m=Math.floor(ms/60000), s=Math.floor((ms%60000)/1000);
+  return m+'m '+s+'s';
+}
+function pct(correct, total) { return total ? Math.round(correct/total*100) : null; }
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name==='sesion')   updateSessionTab();
+  if (name==='historial') updateHistorialTab();
+}
+
+// ─── HERO ─────────────────────────────────────────────────────────────────────
+function getCurrentLevel() {
+  let idx=0;
+  for(let i=levels.length-1;i>=0;i--){if(state.stars>=levels[i].min){idx=i;break;}}
+  return levels[idx];
+}
+
+function updateHero() {
+  const lvl=getCurrentLevel();
+  document.getElementById('heroEmoji').textContent=lvl.emoji;
+  document.getElementById('starCount').textContent=state.stars;
+  document.getElementById('heroNameBar').textContent=CFG.name+' el '+lvl.name;
+  const lvlIdx=levels.indexOf(lvl);
+  const next=levels[Math.min(lvlIdx+1,levels.length-1)];
+  const progress=next.min>lvl.min?((state.stars-lvl.min)/(next.min-lvl.min))*100:100;
+  document.getElementById('xpBar').style.width=Math.min(100,Math.max(0,progress))+'%';
+  document.getElementById('xpText').textContent='Nivel '+(lvlIdx+1)+': '+lvl.name+' '+lvl.emoji;
+}
+
+function addStar(x, y) {
+  state.stars++;
+  state.streak++;
+  state.correct++;
+  state.games++;
+  saveData();
+  updateHero();
+  const burst=document.createElement('div');
+  burst.className='score-burst';
+  burst.textContent='+⭐';
+  burst.style.left=(x||200)+'px';
+  burst.style.top=(y||300)+'px';
+  document.body.appendChild(burst);
+  setTimeout(()=>burst.remove(),1000);
+  if(state.streak>=3) confetti();
+  updateSessionTab();
+}
+
+function addWrong() {
+  state.wrong++;
+  state.streak=0;
+  state.games++;
+  updateSessionTab();
+}
+
+function confetti() {
+  const colors=['#e94560','#f5a623','#4ecdc4','#a855f7','#60a5fa'];
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.style.left=Math.random()*100+'vw';
+    p.style.top='-20px';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDelay=(Math.random()*0.5)+'s';
+    p.style.animationDuration=(1.5+Math.random())+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),2500);
+  }
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────────────
+function openGame(name) {
+  if(name==='fonema')  initFonema();
+  if(name==='silabas') initSilaba();
+  if(name==='auto')    initAuto();
+  if(name==='cadena')  initCadena();
+  document.getElementById('modal-'+name).classList.add('open');
+}
+function closeModal(name) { document.getElementById('modal-'+name).classList.remove('open'); }
+
+// ─── FONEMA ───────────────────────────────────────────────────────────────────
+function initFonema()  { currentFonema=Math.floor(Math.random()*fonemas.length); renderFonema(); }
+function nextFonema()  { currentFonema=Math.floor(Math.random()*fonemas.length); renderFonema(); }
+
+function renderFonema() {
+  const f=fonemas[currentFonema];
+  const disp=document.getElementById('gameLetterDisplay');
+  disp.textContent=f.letter; disp.style.color=f.color;
+  disp.style.animation='none'; void disp.offsetWidth;
+  disp.style.animation='letterBounce 0.5s cubic-bezier(.34,1.56,.64,1)';
+  const grid=document.getElementById('fonemaOptions');
+  grid.innerHTML='';
+  shuffle(f.options).forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='option-btn';
+    btn.innerHTML=`<span class="opt-emoji">${opt.emoji}</span><span class="opt-word">${opt.word}</span>`;
+    btn.onclick=(e)=>checkFonema(opt.correct,btn,e,f.options.find(o=>o.correct).word);
+    grid.appendChild(btn);
+  });
+  document.getElementById('fonemaFeedback').classList.remove('show');
+  document.getElementById('nextFonemaBtn').style.display='none';
+}
+
+function checkFonema(correct, btn, e, correctWord) {
+  document.querySelectorAll('#fonemaOptions .option-btn').forEach(b=>{
+    b.disabled=true;
+    const w=b.querySelector('.opt-word').textContent;
+    if(fonemas[currentFonema].options.find(o=>o.word===w&&o.correct)) b.classList.add('correct');
+  });
+  const fb=document.getElementById('fonemaFeedback');
+  if(correct){
+    btn.classList.add('correct');
+    fb.textContent=['¡Excelente! 🎉','¡Correcto! ⭐','¡Muy bien! 🚀','¡Genio! 🧙‍♂️'][Math.floor(Math.random()*4)];
+    fb.className='feedback show ok';
+    addStar(e.clientX,e.clientY);
+  } else {
+    btn.classList.add('wrong');
+    addWrong();
+    fb.textContent=`¡Casi! Era "${correctWord}" 💪`;
+    fb.className='feedback show fail';
+  }
+  document.getElementById('nextFonemaBtn').style.display='inline-block';
+}
+
+// ─── SÍLABAS ──────────────────────────────────────────────────────────────────
+function initSilaba() { currentSilaba=Math.floor(Math.random()*silabaWords.length); selectedSyllables=[]; renderSilaba(); }
+function nextSilaba() { currentSilaba=Math.floor(Math.random()*silabaWords.length); selectedSyllables=[]; renderSilaba(); }
+function resetSilaba(){ selectedSyllables=[]; renderSilaba(); }
+
+function renderSilaba() {
+  const w=silabaWords[currentSilaba];
+  document.getElementById('silabaTarget').innerHTML=`Armá la palabra: <strong style="color:var(--gold);font-size:1.1rem">${w.emoji} ${w.word}</strong>`;
+  const slots=document.getElementById('wordSlots');
+  slots.innerHTML='';
+  w.syllables.forEach((_,i)=>{
+    const slot=document.createElement('div');
+    slot.className='word-slot'; slot.id='slot-'+i;
+    slots.appendChild(slot);
+  });
+  const pieces=document.getElementById('silabaPieces');
+  pieces.innerHTML='';
+  shuffle(w.syllables).forEach(syl=>{
+    const card=document.createElement('div');
+    card.className='syl-card'; card.textContent=syl; card.dataset.syl=syl;
+    card.onclick=()=>selectSylaba(card,syl);
+    pieces.appendChild(card);
+  });
+  selectedSyllables=[];
+  document.getElementById('silabaFeedback').classList.remove('show');
+  document.getElementById('nextSilabaBtn').style.display='none';
+}
+
+function selectSylaba(card, syl) {
+  const w=silabaWords[currentSilaba];
+  if(card.classList.contains('selected')) return;
+  card.classList.add('selected');
+  selectedSyllables.push(syl);
+  const slot=document.getElementById('slot-'+(selectedSyllables.length-1));
+  if(slot){slot.textContent=syl;slot.classList.add('filled');}
+  if(selectedSyllables.length===w.syllables.length){
+    const formed=selectedSyllables.join('');
+    const target=w.syllables.join('');
+    const fb=document.getElementById('silabaFeedback');
+    if(formed===target){
+      fb.textContent=`¡${w.emoji} ${w.word}! ¡Lo armaste! 🎉`;
+      fb.className='feedback show ok';
+      addStar(300,400);
+      document.getElementById('nextSilabaBtn').style.display='inline-block';
+    } else {
+      fb.textContent='¡Casi! Intentá de nuevo 💪';
+      fb.className='feedback show fail';
+      addWrong();
+      setTimeout(resetSilaba,1500);
+    }
+  }
+}
+
+// ─── AUTO ─────────────────────────────────────────────────────────────────────
+function initAuto() {
+  document.getElementById('autoMisionText').textContent='Tocá "Nueva misión" para comenzar';
+  document.getElementById('autoMisionTitle').textContent='Misión:';
+  document.getElementById('autoEmoji').textContent='🎯';
+}
+function newAutoMision() {
+  let idx;
+  do{idx=Math.floor(Math.random()*autoMisiones.length);}while(idx===lastAutoMision&&autoMisiones.length>1);
+  lastAutoMision=idx;
+  const m=autoMisiones[idx];
+  document.getElementById('autoEmoji').textContent=m.emoji;
+  document.getElementById('autoMisionTitle').textContent=m.title;
+  document.getElementById('autoMisionText').textContent=m.text;
+}
+function autoCorrect() {
+  addStar(200,300);
+  const el=document.getElementById('autoMisionDisplay');
+  el.style.border='2px solid var(--green)';
+  setTimeout(()=>el.style.border='none',800);
+  newAutoMision();
+}
+
+// ─── CADENA ───────────────────────────────────────────────────────────────────
+function initCadena() { cadenaChain=[]; cadenaTurno=0; renderCadena(); }
+function cadenaReset() { cadenaChain=[]; cadenaTurno=0; renderCadena(); document.getElementById('cadenaFeedback').classList.remove('show'); }
+
+function renderCadena() {
+  document.getElementById('cadenaLastWord').textContent=cadenaChain.length?cadenaChain[cadenaChain.length-1]:'—';
+  document.getElementById('cadenaTurnoLabel').textContent=cadenaTurno===0?CFG.name+' 🧙‍♂️':'Papá/Mamá 👨';
+  if(cadenaChain.length>0){
+    const last=cadenaChain[cadenaChain.length-1];
+    document.getElementById('cadenaNextSound').textContent='"'+last.slice(-2)+'"';
+  } else {
+    document.getElementById('cadenaNextSound').textContent='cualquier sonido';
+  }
+  const chainEl=document.getElementById('cadenaChain');
+  chainEl.innerHTML='';
+  cadenaChain.forEach((word,i)=>{
+    const span=document.createElement('span');
+    span.style.cssText=`background:rgba(255,255,255,0.08);border-radius:8px;padding:4px 10px;font-size:0.85rem;color:${i%2===0?'var(--green)':'var(--gold)'};font-weight:700`;
+    span.textContent=word;
+    chainEl.appendChild(span);
+  });
+}
+
+function cadenaAdd() {
+  cadenaChain.push(CADENA_POOL[cadenaChain.length % CADENA_POOL.length]);
+  cadenaTurno=1-cadenaTurno;
+  addStar(200,300);
+  renderCadena();
+  document.getElementById('cadenaFeedback').classList.remove('show');
+}
+
+function cadenaFail() {
+  const fb=document.getElementById('cadenaFeedback');
+  const loser=cadenaTurno===0?CFG.name:'Papá/Mamá';
+  fb.textContent=loser+' paga una prenda! 😄 ¡Voz de robot!';
+  fb.className='feedback show fail';
+  setTimeout(cadenaReset,3000);
+}
+
+// ─── SESIÓN ───────────────────────────────────────────────────────────────────
+function updateSessionTab() {
+  const total=state.correct+state.wrong;
+  const p=pct(state.correct,total);
+  document.getElementById('s-correct').textContent=state.correct;
+  document.getElementById('s-wrong').textContent=state.wrong;
+  document.getElementById('s-pct').textContent=p!==null?p+'%':'—';
+  document.getElementById('s-streak').textContent=state.streak;
+  document.getElementById('s-stars').textContent=state.correct;
+  document.getElementById('s-games').textContent=state.games;
+  document.getElementById('s-time').textContent=Math.floor((Date.now()-state.sessionStart)/60000)+'m';
+}
+
+async function saveSession() {
+  if(state.correct===0&&state.wrong===0){alert('¡Jugá un poco primero antes de guardar!');return;}
+  const total=state.correct+state.wrong;
+  const record={
+    fecha:    state.sessionStart,
+    correct:  state.correct,
+    wrong:    state.wrong,
+    total:    total,
+    pct:      pct(state.correct,total),
+    stars:    state.correct,
+    streak:   state.streak,
+    games:    state.games,
+    duration: Date.now()-state.sessionStart
+  };
+
+  if(sbClient){
+    try{
+      const {error}=await sbClient.from('sesiones').insert([record]);
+      if(!error) setSyncStatus('ok','🟢 Guardado en nube');
+      else throw error;
+    } catch(e){
+      console.error(e);
+      setSyncStatus('err','🔴 Error al guardar');
+    }
+    // Re-fetch to keep list accurate
+    try{
+      const {data}=await sbClient.from('sesiones').select('*').order('fecha',{ascending:false}).limit(50);
+      if(data) sessions=data;
+    }catch(e){}
+  } else {
+    sessions.unshift({...record, id:Date.now(), created_at:new Date().toISOString()});
+  }
+
+  saveData();
+  confetti();
+  resetSessionCounters();
+  updateHistorialTab();
+  showTab('historial', document.querySelector('.tab:nth-child(3)'));
+}
+
+function resetSessionCounters() {
+  state.correct=0; state.wrong=0; state.streak=0; state.games=0; state.sessionStart=Date.now();
+  updateSessionTab();
+}
+
+function showResetConfirm()  { document.getElementById('resetConfirm').classList.add('show'); }
+function hideResetConfirm()  { document.getElementById('resetConfirm').classList.remove('show'); }
+function resetSession()      { resetSessionCounters(); hideResetConfirm(); }
+
+// ─── HISTORIAL ────────────────────────────────────────────────────────────────
+function updateHistorialTab() {
+  const totalStars=state.stars;
+  const avgP=sessions.length?Math.round(sessions.reduce((a,s)=>a+(s.pct||0),0)/sessions.length):null;
+  document.getElementById('h-sessions').textContent=sessions.length;
+  document.getElementById('h-stars').textContent=totalStars;
+  document.getElementById('h-avgpct').textContent=avgP!==null?avgP+'%':'—';
+  drawChart();
+  const list=document.getElementById('sessionList');
+  list.innerHTML='';
+  if(!sessions.length){
+    list.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.85rem;padding:20px 0;">Aún no hay sesiones guardadas.<br>Jugá y presioná "Guardar sesión".</div>';
+    return;
+  }
+  sessions.slice(0,20).forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.className='session-card';
+    const p=s.pct||0;
+    const color=p>=80?'var(--green)':p>=60?'var(--gold)':'var(--accent)';
+    card.innerHTML=`
+      <div>
+        <div class="session-date">${fmtDate(s.fecha||s.date)}</div>
+        <div class="session-stars" style="margin-top:2px;">⭐${s.stars} · ${s.correct}✅ ${s.wrong}❌</div>
+      </div>
+      <div class="session-bar-wrap"><div class="session-bar" style="width:${p}%;background:linear-gradient(90deg,${color},${color}88)"></div></div>
+      <div class="session-pct" style="color:${color}">${p}%</div>`;
+    card.onclick=()=>openSessionDetail(i);
+    list.appendChild(card);
+  });
+}
+
+function drawChart() {
+  const canvas=document.getElementById('evolutionChart');
+  const noData=document.getElementById('noDataMsg');
+  if(!sessions.length){canvas.style.display='none';noData.style.display='block';return;}
+  canvas.style.display='block';noData.style.display='none';
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.parentElement.getBoundingClientRect();
+  const W=rect.width-32, H=160;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  const data=[...sessions].reverse().slice(-10);
+  const pts=data.map(s=>s.pct||0);
+  const pad={l:30,r:16,t:16,b:28};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const xStep=pts.length>1?cw/(pts.length-1):cw;
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+  [0,25,50,75,100].forEach(v=>{
+    const y=pad.t+ch*(1-v/100);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='9px Nunito';ctx.fillText(v+'%',2,y+3);
+  });
+  const grad=ctx.createLinearGradient(0,pad.t,0,H);
+  grad.addColorStop(0,'rgba(78,205,196,0.35)');grad.addColorStop(1,'rgba(78,205,196,0)');
+  ctx.beginPath();
+  pts.forEach((v,i)=>{const x=pad.l+i*xStep,y=pad.t+ch*(1-v/100);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+  ctx.lineTo(pad.l+(pts.length-1)*xStep,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='#4ecdc4';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  pts.forEach((v,i)=>{const x=pad.l+i*xStep,y=pad.t+ch*(1-v/100);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+  ctx.stroke();
+  pts.forEach((v,i)=>{
+    const x=pad.l+i*xStep, y=pad.t+ch*(1-v/100);
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#4ecdc4';ctx.fill();
+    ctx.strokeStyle=var_deep();ctx.lineWidth=2;ctx.stroke();
+    if(pts.length<=7||i%2===0){
+      ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font='8px Nunito';ctx.textAlign='center';
+      ctx.fillText(fmtDate(data[i].fecha||data[i].date),x,H-pad.b+12);
+    }
+  });
+}
+
+function var_deep(){return '#16213e';}
+
+// ─── SESSION DETAIL ───────────────────────────────────────────────────────────
+function openSessionDetail(idx) {
+  selectedSessionIdx=idx;
+  const s=sessions[idx];
+  const p=s.pct||0;
+  const color=p>=80?'var(--green)':p>=60?'var(--gold)':'var(--accent)';
+  document.getElementById('detailTitle').textContent='📅 '+fmtDate(s.fecha||s.date);
+  document.getElementById('detailContent').innerHTML=`
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Fredoka One',cursive;font-size:3rem;color:${color}">${p}%</div>
+      <div style="font-size:0.8rem;color:rgba(255,255,255,0.4);">precisión</div>
+    </div>
+    <div class="detail-row"><span class="detail-key">✅ Correctas</span><span class="detail-val">${s.correct}</span></div>
+    <div class="detail-row"><span class="detail-key">❌ Total intentos</span><span class="detail-val">${s.total}</span></div>
+    <div class="detail-row"><span class="detail-key">⭐ Estrellas</span><span class="detail-val">${s.stars}</span></div>
+    <div class="detail-row"><span class="detail-key">🔥 Mejor racha</span><span class="detail-val">${s.streak}</span></div>
+    <div class="detail-row"><span class="detail-key">🎮 Rondas</span><span class="detail-val">${s.games}</span></div>
+    <div class="detail-row"><span class="detail-key">⏱️ Duración</span><span class="detail-val">${fmtTime(s.duration)}</span></div>`;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+async function deleteSession() {
+  if(selectedSessionIdx===null) return;
+  const s=sessions[selectedSessionIdx];
+  if(sbClient && s.id){
+    try{ await sbClient.from('sesiones').delete().eq('id',s.id); }catch(e){}
+  }
+  sessions.splice(selectedSessionIdx,1);
+  saveData();
+  closeModal('detail');
+  updateHistorialTab();
+}
+
+function showDeleteAllConfirm()  { document.getElementById('deleteAllConfirm').classList.add('show'); }
+function hideDeleteAllConfirm()  { document.getElementById('deleteAllConfirm').classList.remove('show'); }
+
+async function deleteAllHistory() {
+  if(sbClient){
+    try{ await sbClient.from('sesiones').delete().neq('id',0); }catch(e){}
+  }
+  sessions=[]; state.stars=0;
+  saveData(); updateHero(); hideDeleteAllConfirm(); updateHistorialTab();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function init() {
+  loadConfig();
+  loadData();
+  updateHero();
+  updateSessionTab();
+  await initSupabase();
+}
+
+init();
+
+window.addEventListener('resize', ()=>{
+  if(document.getElementById('tab-historial').classList.contains('active')) drawChart();
+});
+</script>
+</body>
+</html>
