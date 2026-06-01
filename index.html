@@ -471,7 +471,11 @@ const autoMisiones = [
 const CADENA_POOL = ['SAPO','PATO','TORO','OLLA','ARAÑA','LUNA','NUBE','ESTRELLA','AGUA','AVIÓN','MESA','ARCO','OSITO','OTTO','UVAS'];
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-let CFG = {name:'Mateo', sbUrl:'', sbKey:''};
+let CFG = {
+  name:  'Mateo',
+  sbUrl: 'https://knbwioneycesedlugbxo.supabase.co',
+  sbKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYndpb25leWNlc2VkbHVnYnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzA5OTksImV4cCI6MjA5NTkwNjk5OX0.uMTeaZKNHkZvzP4U4CosXICe9GgTG7XOvqP4aehqA60'
+};
 
 function saveConfig() {
   CFG.name  = document.getElementById('cfg-name').value.trim() || 'Mateo';
