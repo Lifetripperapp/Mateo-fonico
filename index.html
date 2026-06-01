@@ -432,10 +432,10 @@ const levels = [
 
 // ─── GAME DATA (tiered by difficulty) ────────────────────────────────────────
 
-// getTier(): 0=básico(0-7★) 1=intermedio(8-24★) 2=avanzado(25+★)
+// getTier(): 0=básico(0-4★) 1=intermedio(5-14★) 2=avanzado(15+★)
 function getTier() {
-  if (state.stars >= 25) return 2;
-  if (state.stars >= 8)  return 1;
+  if (state.stars >= 15) return 2;
+  if (state.stars >= 5)  return 1;
   return 0;
 }
 const TIER_LABEL = ['🌱 Básico','⚡ Intermedio','🔥 Avanzado'];
