@@ -631,7 +631,11 @@ async function initSupabase() {
       .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50);
     if (error) throw error;
     sessions = data || [];
-    setSyncStatus('ok', `🟢 ${sessions.length} sesiones`);
+    // Recalculate stars from cloud history so tier/level is always accurate
+    state.stars = sessions.reduce((sum, s) => sum + (s.stars || 0), 0);
+    saveData();
+    updateHero();
+    setSyncStatus('ok', `🟢 ${sessions.length} sesiones · ⭐${state.stars}`);
   } catch(e) {
     console.error('Supabase:', e);
     setSyncStatus('err', '🔴 ' + (e.message || 'Error'));
