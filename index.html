@@ -808,7 +808,7 @@ function checkFonema(correct, btn, e, correctWord) {
   document.querySelectorAll('#fonemaOptions .option-btn').forEach(b=>{
     b.disabled=true;
     const w=b.querySelector('.opt-word').textContent;
-    if(fonemas[currentFonema].options.find(o=>o.word===w&&o.correct)) b.classList.add('correct');
+    if(fonemasByTier[getTier()][currentFonema].options.find(o=>o.word===w&&o.correct)) b.classList.add('correct');
   });
   const fb=document.getElementById('fonemaFeedback');
   if(correct){
