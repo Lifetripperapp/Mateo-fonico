@@ -90,6 +90,10 @@
   .syl-card{background:rgba(168,85,247,0.2);border:2px solid var(--purple);border-radius:14px;padding:14px 20px;font-family:'Fredoka One',cursive;font-size:2rem;cursor:pointer;transition:all 0.2s;min-width:70px;text-align:center;}
   .syl-card:hover{transform:scale(1.05);background:rgba(168,85,247,0.35);}
   .syl-card.selected{background:rgba(245,166,35,0.3);border-color:var(--gold);transform:scale(1.08);}
+  .syl-card.word-card{font-size:1.2rem;min-width:90px;padding:12px 18px;background:rgba(78,205,196,0.2);border-color:var(--green);}
+  .syl-card.word-card:hover{background:rgba(78,205,196,0.35);}
+  .syl-card.word-card.selected{background:rgba(245,166,35,0.3);border-color:var(--gold);}
+  .word-slot.word-mode{min-width:90px;font-size:1.2rem;}
   .word-slots{display:flex;gap:8px;justify-content:center;margin:16px 0;flex-wrap:wrap;}
   .word-slot{min-width:70px;height:60px;border-bottom:3px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--green);transition:all 0.2s;}
   .word-slot.filled{border-color:var(--green);}
@@ -141,6 +145,31 @@
   .judge-ok{background:rgba(78,205,196,0.25);color:var(--green);border:2px solid var(--green);}
   .judge-no{background:rgba(233,69,96,0.25);color:var(--accent);border:2px solid var(--accent);}
 
+  /* LANG SELECTOR */
+  .lang-btn-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .lang-btn{padding:8px 14px;border-radius:12px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s;}
+  .lang-btn:hover{border-color:rgba(255,255,255,0.3);color:white;}
+  .lang-btn.active{background:var(--purple);border-color:var(--purple);color:white;box-shadow:0 4px 15px rgba(168,85,247,0.4);}
+  /* WORD LIST PANEL */
+  .wl-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+  .wl-header-title{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--gold);}
+  .wl-tier-tabs{display:flex;gap:4px;margin:10px 0 8px;flex-wrap:wrap;}
+  .wl-tier-tab{padding:5px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+  .wl-tier-tab.active{background:var(--accent);border-color:var(--accent);color:white;}
+  .wl-lang-tabs{display:flex;gap:5px;margin-bottom:10px;}
+  .wl-lang-tab{flex:1;padding:6px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:700;cursor:pointer;text-align:center;transition:all 0.2s;}
+  .wl-lang-tab.active{background:var(--green);border-color:var(--green);color:white;}
+  .wl-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .wl-item:last-child{border-bottom:none;}
+  .wl-item-info{flex:1;min-width:0;}
+  .wl-item-word{font-family:'Fredoka One',cursive;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .wl-item-syls{font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:2px;}
+  .wl-edit-btn{padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-size:0.75rem;cursor:pointer;flex-shrink:0;}
+  .wl-edit-btn:hover{background:rgba(255,255,255,0.12);color:white;}
+  /* WORD EDIT MODAL */
+  .we-label{font-size:0.78rem;color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:0.4px;}
+  .we-input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:white;font-family:'Nunito',sans-serif;font-size:0.9rem;width:100%;box-sizing:border-box;}
+  .we-input:focus{outline:none;border-color:var(--purple);}
   @media(max-width:480px){.title{font-size:1.6rem;}.big-letter{font-size:4.5rem;}.tab{font-size:0.6rem;padding:8px 2px;}.cfg-input{width:140px;}}
 </style>
 </head>
@@ -292,6 +321,41 @@
       </div>
     </div>
 
+    <!-- IDIOMA -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:20px;margin-bottom:16px;">
+      <div class="cfg-row" style="border-bottom:none">
+        <div><div class="cfg-label">🌍 Idioma del juego</div><div class="cfg-sub">Palabras y frases en Constructor de Sílabas</div></div>
+      </div>
+      <div class="lang-btn-group" style="margin-top:10px;">
+        <button id="lang-btn-es"  class="lang-btn active" onclick="setLang('es')">🇦🇷 Solo Español</button>
+        <button id="lang-btn-en"  class="lang-btn"        onclick="setLang('en')">🇺🇸 Solo Inglés</button>
+        <button id="lang-btn-mix" class="lang-btn"        onclick="setLang('mix')">🌍 Mezclando</button>
+      </div>
+    </div>
+
+    <!-- BANCO DE PALABRAS -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:20px;margin-bottom:16px;">
+      <div class="wl-header" onclick="toggleWordListPanel()">
+        <div class="wl-header-title">📚 Banco de palabras y frases</div>
+        <div id="wlArrow" style="color:rgba(255,255,255,0.4);font-size:0.85rem;">▼ ver</div>
+      </div>
+      <div id="wlPanel" style="display:none;margin-top:14px;">
+        <div class="wl-lang-tabs">
+          <button id="wl-lang-es" class="wl-lang-tab active" onclick="setWLLang('es')">🇦🇷 Español</button>
+          <button id="wl-lang-en" class="wl-lang-tab"        onclick="setWLLang('en')">🇺🇸 Inglés</button>
+        </div>
+        <div class="wl-tier-tabs">
+          <button id="wl-tier-0" class="wl-tier-tab active" onclick="setWLTier(0)">🌱 Básico</button>
+          <button id="wl-tier-1" class="wl-tier-tab"        onclick="setWLTier(1)">⚡ Interm.</button>
+          <button id="wl-tier-2" class="wl-tier-tab"        onclick="setWLTier(2)">🔥 Avanz.</button>
+          <button id="wl-tier-3" class="wl-tier-tab"        onclick="setWLTier(3)">📖 Frases</button>
+        </div>
+        <div id="wlItems"></div>
+        <button class="play-btn verde" style="width:100%;margin-top:12px;font-size:0.85rem;" onclick="openWordEdit(-1)">➕ Agregar</button>
+        <button class="play-btn ghost"  style="width:100%;margin-top:8px;font-size:0.75rem;" onclick="resetWordDB()">↩️ Restaurar palabras por defecto</button>
+      </div>
+    </div>
+
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:20px;">
       <div style="font-family:'Fredoka One',cursive;color:var(--gold);margin-bottom:12px;">📖 Cómo configurar Supabase (gratis)</div>
       <div style="font-size:0.83rem;color:rgba(255,255,255,0.7);line-height:1.7;">
@@ -404,6 +468,30 @@ create policy "public delete" on sesiones for delete using (true);</pre>
   </div>
 </div>
 
+<!-- WORD EDIT -->
+<div class="modal-overlay" id="modal-word-edit">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('word-edit')">✕</button>
+    <div class="modal-title" id="weTitle">✏️ Editar entrada</div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div><label class="we-label">Emoji</label><input id="we-emoji" class="we-input" placeholder="🦆" maxlength="4"></div>
+      <div><label class="we-label">Palabra / Frase</label><input id="we-word" class="we-input" placeholder="PATO"></div>
+      <div>
+        <label class="we-label">Sílabas / Palabras <span style="font-weight:400;text-transform:none;letter-spacing:0">(separadas por coma)</span></label>
+        <input id="we-syllables" class="we-input" placeholder="PA,TO">
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:4px;">Ej: PA,TO — o para frases: EL,PATO,NADA</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:space-between;flex-wrap:wrap;">
+      <button id="weDeleteBtn" class="play-btn danger" style="font-size:0.85rem;" onclick="wordEditDelete()">🗑️ Eliminar</button>
+      <div style="display:flex;gap:8px;">
+        <button class="play-btn ghost" style="font-size:0.85rem;" onclick="closeModal('word-edit')">Cancelar</button>
+        <button class="play-btn verde" style="font-size:0.85rem;" onclick="wordEditSave()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- DETALLE SESIÓN -->
 <div class="modal-overlay" id="modal-detail">
   <div class="modal">
@@ -432,13 +520,14 @@ const levels = [
 
 // ─── GAME DATA (tiered by difficulty) ────────────────────────────────────────
 
-// getTier(): 0=básico(0-4★) 1=intermedio(5-14★) 2=avanzado(15+★)
+// getTier(): 0=básico(0-4★) 1=intermedio(5-14★) 2=avanzado(15-29★) 3=frases(30+★)
 function getTier() {
+  if (state.stars >= 30) return 3;
   if (state.stars >= 15) return 2;
   if (state.stars >= 5)  return 1;
   return 0;
 }
-const TIER_LABEL = ['🌱 Básico','⚡ Intermedio','🔥 Avanzado'];
+const TIER_LABEL = ['🌱 Básico','⚡ Intermedio','🔥 Avanzado','📖 Frases'];
 
 // FONEMA MAGO ─────────────────────────────────────────────────────────────────
 // Tier 0: solo M,P,S,T,L — consonantes que Mateo ya conoce, distractores muy distintos
@@ -486,12 +575,12 @@ const fonemasByTier = [
   ]
 ];
 
-// CONSTRUCTOR DE SÍLABAS ───────────────────────────────────────────────────────
-// Tier 0: 2 sílabas, patrón CV-CV simple
-// Tier 1: 2-3 sílabas, algunas trabadas (PLA, TRO)
-// Tier 2: 3-4 sílabas, mayor complejidad
-const silabasByTier = [
-  // ── Tier 0: básico ──
+// CONSTRUCTOR DE SÍLABAS / FRASES ─────────────────────────────────────────────
+// Tier 0: 2 sílabas, CV-CV simple | Tier 1: 2-3 sílabas, trabadas
+// Tier 2: 3-5 sílabas | Tier 3: Constructor de Frases (30+★)
+// DEFAULT_WORDS contiene ES + EN; wordDB es editable por el usuario
+const DEFAULT_WORDS = { es: [
+  // ── Tier 0: básico (20 palabras) ──
   [
     {word:'MAMÁ',   emoji:'👩',   syllables:['MA','MÁ']},
     {word:'PAPÁ',   emoji:'👨',   syllables:['PA','PÁ']},
@@ -503,34 +592,170 @@ const silabasByTier = [
     {word:'PUMA',   emoji:'🐆',   syllables:['PU','MA']},
     {word:'MOTO',   emoji:'🏍️',  syllables:['MO','TO']},
     {word:'LOMA',   emoji:'⛰️',  syllables:['LO','MA']},
+    {word:'NENA',   emoji:'👧',   syllables:['NE','NA']},
+    {word:'TELA',   emoji:'🧵',   syllables:['TE','LA']},
+    {word:'SOPA',   emoji:'🍲',   syllables:['SO','PA']},
+    {word:'FOCA',   emoji:'🦭',   syllables:['FO','CA']},
+    {word:'DEDO',   emoji:'☝️',   syllables:['DE','DO']},
+    {word:'POLO',   emoji:'🧊',   syllables:['PO','LO']},
+    {word:'BOCA',   emoji:'👄',   syllables:['BO','CA']},
+    {word:'PERA',   emoji:'🍐',   syllables:['PE','RA']},
+    {word:'GATO',   emoji:'🐱',   syllables:['GA','TO']},
+    {word:'MESA',   emoji:'🪑',   syllables:['ME','SA']},
   ],
-  // ── Tier 1: intermedio ──
+  // ── Tier 1: intermedio (20 palabras) ──
   [
-    {word:'PLATO',  emoji:'🍽️',  syllables:['PLA','TO']},
-    {word:'SALTO',  emoji:'🦘',   syllables:['SAL','TO']},
-    {word:'CAMISA', emoji:'👔',   syllables:['CA','MI','SA']},
-    {word:'TOMATE', emoji:'🍅',   syllables:['TO','MA','TE']},
-    {word:'PALOMA', emoji:'🕊️',  syllables:['PA','LO','MA']},
-    {word:'PELOTA', emoji:'⚽',   syllables:['PE','LO','TA']},
-    {word:'BANANA', emoji:'🍌',   syllables:['BA','NA','NA']},
-    {word:'CABEZA', emoji:'🗣️',  syllables:['CA','BE','ZA']},
-    {word:'MALETA', emoji:'🧳',   syllables:['MA','LE','TA']},
-    {word:'BOTELLA',emoji:'🍶',   syllables:['BO','TE','LLA']},
+    {word:'PLATO',   emoji:'🍽️',  syllables:['PLA','TO']},
+    {word:'SALTO',   emoji:'🦘',   syllables:['SAL','TO']},
+    {word:'CAMISA',  emoji:'👔',   syllables:['CA','MI','SA']},
+    {word:'TOMATE',  emoji:'🍅',   syllables:['TO','MA','TE']},
+    {word:'PALOMA',  emoji:'🕊️',  syllables:['PA','LO','MA']},
+    {word:'PELOTA',  emoji:'⚽',   syllables:['PE','LO','TA']},
+    {word:'BANANA',  emoji:'🍌',   syllables:['BA','NA','NA']},
+    {word:'CABEZA',  emoji:'🗣️',  syllables:['CA','BE','ZA']},
+    {word:'MALETA',  emoji:'🧳',   syllables:['MA','LE','TA']},
+    {word:'BOTELLA', emoji:'🍶',   syllables:['BO','TE','LLA']},
+    {word:'GLOBO',   emoji:'🎈',   syllables:['GLO','BO']},
+    {word:'FRUTA',   emoji:'🍎',   syllables:['FRU','TA']},
+    {word:'TIGRE',   emoji:'🐯',   syllables:['TI','GRE']},
+    {word:'PLUMA',   emoji:'🪶',   syllables:['PLU','MA']},
+    {word:'DRAGÓN',  emoji:'🐉',   syllables:['DRA','GÓN']},
+    {word:'FLORES',  emoji:'🌸',   syllables:['FLO','RES']},
+    {word:'ZAPATO',  emoji:'👟',   syllables:['ZA','PA','TO']},
+    {word:'PINTURA', emoji:'🎨',   syllables:['PIN','TU','RA']},
+    {word:'ABUELA',  emoji:'👵',   syllables:['A','BUE','LA']},
+    {word:'PUENTE',  emoji:'🌉',   syllables:['PUEN','TE']},
   ],
-  // ── Tier 2: avanzado ──
+  // ── Tier 2: avanzado (20 palabras) ──
   [
-    {word:'MARIPOSA', emoji:'🦋',  syllables:['MA','RI','PO','SA']},
-    {word:'ELEFANTE', emoji:'🐘',  syllables:['E','LE','FAN','TE']},
-    {word:'VENTANA',  emoji:'🪟',  syllables:['VEN','TA','NA']},
-    {word:'CAMELLO',  emoji:'🐪',  syllables:['CA','ME','LLO']},
-    {word:'TORTUGA',  emoji:'🐢',  syllables:['TOR','TU','GA']},
-    {word:'MURCIÉLAGO',emoji:'🦇', syllables:['MUR','CIÉ','LA','GO']},
-    {word:'DINOSAURIO',emoji:'🦕', syllables:['DI','NO','SAU','RIO']},
-    {word:'HELICÓPTERO',emoji:'🚁',syllables:['HE','LI','CÓP','TE','RO']},
-    {word:'COCODRILO', emoji:'🐊', syllables:['CO','CO','DRI','LO']},
-    {word:'CHOCOLATЕ', emoji:'🍫', syllables:['CHO','CO','LA','TE']},
+    {word:'MARIPOSA',   emoji:'🦋',  syllables:['MA','RI','PO','SA']},
+    {word:'ELEFANTE',   emoji:'🐘',  syllables:['E','LE','FAN','TE']},
+    {word:'VENTANA',    emoji:'🪟',  syllables:['VEN','TA','NA']},
+    {word:'CAMELLO',    emoji:'🐪',  syllables:['CA','ME','LLO']},
+    {word:'TORTUGA',    emoji:'🐢',  syllables:['TOR','TU','GA']},
+    {word:'MURCIÉLAGO', emoji:'🦇',  syllables:['MUR','CIÉ','LA','GO']},
+    {word:'DINOSAURIO', emoji:'🦕',  syllables:['DI','NO','SAU','RIO']},
+    {word:'HELICÓPTERO',emoji:'🚁',  syllables:['HE','LI','CÓP','TE','RO']},
+    {word:'COCODRILO',  emoji:'🐊',  syllables:['CO','CO','DRI','LO']},
+    {word:'CHOCOLATE',  emoji:'🍫',  syllables:['CHO','CO','LA','TE']},
+    {word:'SOMBRERO',   emoji:'🎩',  syllables:['SOM','BRE','RO']},
+    {word:'PARAGUAS',   emoji:'☂️',  syllables:['PA','RA','GUAS']},
+    {word:'ZANAHORIA',  emoji:'🥕',  syllables:['ZA','NA','HO','RIA']},
+    {word:'BICICLETA',  emoji:'🚲',  syllables:['BI','CI','CLE','TA']},
+    {word:'TELEVISIÓN', emoji:'📺',  syllables:['TE','LE','VI','SIÓN']},
+    {word:'CANGREJO',   emoji:'🦀',  syllables:['CAN','GRE','JO']},
+    {word:'ABEJORRO',   emoji:'🐝',  syllables:['A','BE','JO','RRO']},
+    {word:'CAMISETA',   emoji:'👕',  syllables:['CA','MI','SE','TA']},
+    {word:'SEMÁFORO',   emoji:'🚦',  syllables:['SE','MÁ','FO','RO']},
+    {word:'COMPUTADORA',emoji:'💻',  syllables:['COM','PU','TA','DO','RA']},
+  ],
+  // ── Tier 3: Constructor de Frases (30+★) ──
+  [
+    {word:'EL PATO NADA',    emoji:'🦆', syllables:['EL','PATO','NADA'],    isPhrase:true},
+    {word:'MI MAMÁ COME',    emoji:'👩', syllables:['MI','MAMÁ','COME'],    isPhrase:true},
+    {word:'LA LUNA BRILLA',  emoji:'🌙', syllables:['LA','LUNA','BRILLA'],  isPhrase:true},
+    {word:'EL GATO DUERME',  emoji:'🐱', syllables:['EL','GATO','DUERME'], isPhrase:true},
+    {word:'MI PAPÁ LEE',     emoji:'👨', syllables:['MI','PAPÁ','LEE'],     isPhrase:true},
+    {word:'LA NENA SALTA',   emoji:'👧', syllables:['LA','NENA','SALTA'],   isPhrase:true},
+    {word:'EL PERRO CORRE',  emoji:'🐕', syllables:['EL','PERRO','CORRE'], isPhrase:true},
+    {word:'MI MANO TOCA',    emoji:'✋', syllables:['MI','MANO','TOCA'],    isPhrase:true},
+    {word:'EL SOL BRILLA',   emoji:'☀️', syllables:['EL','SOL','BRILLA'],  isPhrase:true},
+    {word:'LA FOCA NADA',    emoji:'🦭', syllables:['LA','FOCA','NADA'],    isPhrase:true},
+    {word:'MI BOCA HABLA',   emoji:'👄', syllables:['MI','BOCA','HABLA'],   isPhrase:true},
+    {word:'EL PATO COME',    emoji:'🦆', syllables:['EL','PATO','COME'],   isPhrase:true},
+    {word:'LA MESA ES GRANDE',emoji:'🪑',syllables:['LA','MESA','ES','GRANDE'],isPhrase:true},
+    {word:'MI GATO ES LINDO', emoji:'🐱',syllables:['MI','GATO','ES','LINDO'], isPhrase:true},
+    {word:'EL TREN VA RÁPIDO',emoji:'🚂',syllables:['EL','TREN','VA','RÁPIDO'],isPhrase:true},
   ]
-];
+], en: [
+  // ── Tier 0 EN: básico (20 words) ──
+  [
+    {word:'MAMA',   emoji:'👩',  syllables:['MA','MA']},
+    {word:'PAPA',   emoji:'👨',  syllables:['PA','PA']},
+    {word:'BABY',   emoji:'👶',  syllables:['BA','BY']},
+    {word:'HAPPY',  emoji:'😊',  syllables:['HAP','PY']},
+    {word:'BUNNY',  emoji:'🐰',  syllables:['BUN','NY']},
+    {word:'CANDY',  emoji:'🍬',  syllables:['CAN','DY']},
+    {word:'PUPPY',  emoji:'🐶',  syllables:['PUP','PY']},
+    {word:'KITTY',  emoji:'🐱',  syllables:['KIT','TY']},
+    {word:'SUNNY',  emoji:'☀️',  syllables:['SUN','NY']},
+    {word:'BELLY',  emoji:'🫃',  syllables:['BEL','LY']},
+    {word:'MONKEY', emoji:'🐒',  syllables:['MON','KEY']},
+    {word:'TIGER',  emoji:'🐯',  syllables:['TI','GER']},
+    {word:'WATER',  emoji:'💧',  syllables:['WA','TER']},
+    {word:'PENCIL', emoji:'✏️',  syllables:['PEN','CIL']},
+    {word:'FINGER', emoji:'☝️',  syllables:['FIN','GER']},
+    {word:'TABLE',  emoji:'🪑',  syllables:['TA','BLE']},
+    {word:'TURTLE', emoji:'🐢',  syllables:['TUR','TLE']},
+    {word:'FLOWER', emoji:'🌸',  syllables:['FLOW','ER']},
+    {word:'LEMON',  emoji:'🍋',  syllables:['LEM','ON']},
+    {word:'ROBOT',  emoji:'🤖',  syllables:['RO','BOT']},
+  ],
+  // ── Tier 1 EN: intermedio (20 words) ──
+  [
+    {word:'DRAGON',   emoji:'🐉',      syllables:['DRA','GON']},
+    {word:'PLANET',   emoji:'🪐',      syllables:['PLA','NET']},
+    {word:'BLANKET',  emoji:'🛏️',     syllables:['BLAN','KET']},
+    {word:'PLASTIC',  emoji:'🧴',      syllables:['PLAS','TIC']},
+    {word:'TOMATO',   emoji:'🍅',      syllables:['TO','MA','TO']},
+    {word:'BANANA',   emoji:'🍌',      syllables:['BA','NA','NA']},
+    {word:'POTATO',   emoji:'🥔',      syllables:['PO','TA','TO']},
+    {word:'UMBRELLA', emoji:'☂️',      syllables:['UM','BREL','LA']},
+    {word:'FAMILY',   emoji:'👨‍👩‍👧', syllables:['FAM','I','LY']},
+    {word:'ANIMAL',   emoji:'🦁',      syllables:['AN','I','MAL']},
+    {word:'YELLOW',   emoji:'💛',      syllables:['YEL','LOW']},
+    {word:'PURPLE',   emoji:'💜',      syllables:['PUR','PLE']},
+    {word:'ORANGE',   emoji:'🍊',      syllables:['OR','ANGE']},
+    {word:'PILLOW',   emoji:'🛏️',     syllables:['PIL','LOW']},
+    {word:'WINDOW',   emoji:'🪟',      syllables:['WIN','DOW']},
+    {word:'BALLOON',  emoji:'🎈',      syllables:['BAL','LOON']},
+    {word:'RAINBOW',  emoji:'🌈',      syllables:['RAIN','BOW']},
+    {word:'BASKET',   emoji:'🧺',      syllables:['BAS','KET']},
+    {word:'ROCKET',   emoji:'🚀',      syllables:['ROC','KET']},
+    {word:'GARDEN',   emoji:'🌻',      syllables:['GAR','DEN']},
+  ],
+  // ── Tier 2 EN: avanzado (20 words) ──
+  [
+    {word:'BUTTERFLY',    emoji:'🦋',  syllables:['BUT','TER','FLY']},
+    {word:'ELEPHANT',     emoji:'🐘',  syllables:['EL','E','PHANT']},
+    {word:'DINOSAUR',     emoji:'🦕',  syllables:['DI','NO','SAUR']},
+    {word:'HELICOPTER',   emoji:'🚁',  syllables:['HEL','I','COP','TER']},
+    {word:'CROCODILE',    emoji:'🐊',  syllables:['CROC','O','DILE']},
+    {word:'CHOCOLATE',    emoji:'🍫',  syllables:['CHOC','O','LATE']},
+    {word:'COMPUTER',     emoji:'💻',  syllables:['COM','PU','TER']},
+    {word:'WATERMELON',   emoji:'🍉',  syllables:['WA','TER','MEL','ON']},
+    {word:'CATERPILLAR',  emoji:'🐛',  syllables:['CAT','ER','PIL','LAR']},
+    {word:'ALLIGATOR',    emoji:'🦎',  syllables:['AL','LI','GA','TOR']},
+    {word:'CALCULATOR',   emoji:'🧮',  syllables:['CAL','CU','LA','TOR']},
+    {word:'STRAWBERRY',   emoji:'🍓',  syllables:['STRAW','BER','RY']},
+    {word:'TELEVISION',   emoji:'📺',  syllables:['TEL','E','VI','SION']},
+    {word:'REFRIGERATOR', emoji:'🧊',  syllables:['RE','FRIG','ER','A','TOR']},
+    {word:'HIPPOPOTAMUS', emoji:'🦛',  syllables:['HIP','PO','POT','A','MUS']},
+    {word:'IMAGINATION',  emoji:'💭',  syllables:['I','MAG','I','NA','TION']},
+    {word:'CELEBRATION',  emoji:'🎉',  syllables:['CEL','E','BRA','TION']},
+    {word:'THERMOMETER',  emoji:'🌡️', syllables:['THER','MOM','E','TER']},
+    {word:'STRAWBERRY',   emoji:'🍓',  syllables:['STRAW','BER','RY']},
+    {word:'AMBULANCE',    emoji:'🚑',  syllables:['AM','BU','LANCE']},
+  ],
+  // ── Tier 3 EN: frases (30+★) ──
+  [
+    {word:'THE CAT SLEEPS',    emoji:'🐱', syllables:['THE','CAT','SLEEPS'],       isPhrase:true},
+    {word:'MY MOM COOKS',      emoji:'👩', syllables:['MY','MOM','COOKS'],          isPhrase:true},
+    {word:'THE SUN IS HOT',    emoji:'☀️', syllables:['THE','SUN','IS','HOT'],      isPhrase:true},
+    {word:'I SEE A DUCK',      emoji:'🦆', syllables:['I','SEE','A','DUCK'],        isPhrase:true},
+    {word:'MY DOG RUNS',       emoji:'🐕', syllables:['MY','DOG','RUNS'],           isPhrase:true},
+    {word:'THE BIRD CAN FLY',  emoji:'🐦', syllables:['THE','BIRD','CAN','FLY'],    isPhrase:true},
+    {word:'I LOVE YOU',        emoji:'❤️', syllables:['I','LOVE','YOU'],            isPhrase:true},
+    {word:'THE BALL IS RED',   emoji:'🔴', syllables:['THE','BALL','IS','RED'],     isPhrase:true},
+    {word:'WE GO TO SCHOOL',   emoji:'🏫', syllables:['WE','GO','TO','SCHOOL'],     isPhrase:true},
+    {word:'THE FISH SWIMS',    emoji:'🐟', syllables:['THE','FISH','SWIMS'],        isPhrase:true},
+    {word:'MY HAND IS BIG',    emoji:'✋', syllables:['MY','HAND','IS','BIG'],      isPhrase:true},
+    {word:'I LIKE CAKE',       emoji:'🎂', syllables:['I','LIKE','CAKE'],           isPhrase:true},
+    {word:'THE MOON IS BRIGHT',emoji:'🌙', syllables:['THE','MOON','IS','BRIGHT'],  isPhrase:true},
+    {word:'A DOG IS FUNNY',    emoji:'🐶', syllables:['A','DOG','IS','FUNNY'],      isPhrase:true},
+    {word:'MY CAT IS SOFT',    emoji:'🐱', syllables:['MY','CAT','IS','SOFT'],      isPhrase:true},
+  ]
+] };
 
 // MISIONES DEL AUTO ────────────────────────────────────────────────────────────
 // Tier 0: identificar sonido inicial, contar sílabas simples
@@ -587,9 +812,48 @@ const CADENA_POOL_BY_TIER = [
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 let CFG = {
   name:  'Mateo',
+  lang:  'es',
   sbUrl: 'https://knbwioneycesedlugbxo.supabase.co',
   sbKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYndpb25leWNlc2VkbHVnYnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzA5OTksImV4cCI6MjA5NTkwNjk5OX0.uMTeaZKNHkZvzP4U4CosXICe9GgTG7XOvqP4aehqA60'
 };
+
+// ─── WORD DATABASE ────────────────────────────────────────────────────────────
+let wordDB = null;
+
+function initWordDB() {
+  try {
+    const s = localStorage.getItem('mateo_words');
+    if (s) { wordDB = JSON.parse(s); return; }
+  } catch(e) {}
+  wordDB = JSON.parse(JSON.stringify(DEFAULT_WORDS));
+}
+
+function saveWordDB() {
+  try { localStorage.setItem('mateo_words', JSON.stringify(wordDB)); } catch(e) {}
+}
+
+function resetWordDB() {
+  if (!confirm('¿Restaurar todas las palabras y frases a los valores originales?')) return;
+  wordDB = JSON.parse(JSON.stringify(DEFAULT_WORDS));
+  saveWordDB();
+  renderWordList();
+}
+
+function getWordList(tier) {
+  if (!wordDB) return [];
+  const t = Math.min(tier, 3);
+  if (CFG.lang === 'en')  return wordDB.en[t] || [];
+  if (CFG.lang === 'mix') return shuffle([...(wordDB.es[t]||[]), ...(wordDB.en[t]||[])]);
+  return wordDB.es[t] || [];
+}
+
+function setLang(lang) {
+  CFG.lang = lang;
+  localStorage.setItem('mateo_cfg', JSON.stringify(CFG));
+  ['es','en','mix'].forEach(l => {
+    document.getElementById('lang-btn-'+l).classList.toggle('active', l===lang);
+  });
+}
 
 function saveConfig() {
   CFG.name  = document.getElementById('cfg-name').value.trim() || 'Mateo';
@@ -603,12 +867,17 @@ function saveConfig() {
 function loadConfig() {
   try {
     const s = localStorage.getItem('mateo_cfg');
-    if (s) CFG = JSON.parse(s);
+    if (s) CFG = {...CFG, ...JSON.parse(s)};
   } catch(e) {}
   document.getElementById('cfg-name').value   = CFG.name;
   document.getElementById('cfg-sb-url').value = CFG.sbUrl;
   document.getElementById('cfg-sb-key').value = CFG.sbKey;
   document.getElementById('heroNameTitle').textContent = CFG.name;
+  // sync lang buttons
+  ['es','en','mix'].forEach(l => {
+    const btn = document.getElementById('lang-btn-'+l);
+    if (btn) btn.classList.toggle('active', l===CFG.lang);
+  });
 }
 
 function confirmResetRPG() {
@@ -827,26 +1096,125 @@ function checkFonema(correct, btn, e, correctWord) {
 
 function checkFonemaCurrentWord() { return fonemasByTier[getTier()][currentFonema]; }
 
+// ─── WORD LIST EDITOR ────────────────────────────────────────────────────────
+let wlState = { lang:'es', tier:0, open:false };
+let wordEditIdx = -1; // -1 = new
+
+function toggleWordListPanel() {
+  wlState.open = !wlState.open;
+  document.getElementById('wlPanel').style.display = wlState.open ? 'block' : 'none';
+  document.getElementById('wlArrow').textContent   = wlState.open ? '▲ ocultar' : '▼ ver';
+  if (wlState.open) renderWordList();
+}
+
+function setWLLang(lang) {
+  wlState.lang = lang;
+  document.getElementById('wl-lang-es').classList.toggle('active', lang==='es');
+  document.getElementById('wl-lang-en').classList.toggle('active', lang==='en');
+  renderWordList();
+}
+
+function setWLTier(tier) {
+  wlState.tier = tier;
+  [0,1,2,3].forEach(t => document.getElementById('wl-tier-'+t).classList.toggle('active', t===tier));
+  renderWordList();
+}
+
+function renderWordList() {
+  const { lang, tier } = wlState;
+  const list = (wordDB[lang] && wordDB[lang][tier]) || [];
+  const container = document.getElementById('wlItems');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!list.length) {
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.82rem;padding:12px 0;">Sin entradas</div>';
+    return;
+  }
+  list.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'wl-item';
+    row.innerHTML = `
+      <span style="font-size:1.3rem;flex-shrink:0">${item.emoji}</span>
+      <div class="wl-item-info">
+        <div class="wl-item-word">${item.word}</div>
+        <div class="wl-item-syls">${item.syllables.join(' · ')}</div>
+      </div>
+      <button class="wl-edit-btn" onclick="openWordEdit(${idx})">✏️ Editar</button>`;
+    container.appendChild(row);
+  });
+}
+
+function openWordEdit(idx) {
+  wordEditIdx = idx;
+  const isNew = idx === -1;
+  document.getElementById('weTitle').textContent = isNew ? '➕ Nueva entrada' : '✏️ Editar entrada';
+  document.getElementById('weDeleteBtn').style.display = isNew ? 'none' : 'inline-block';
+  if (!isNew) {
+    const item = wordDB[wlState.lang][wlState.tier][idx];
+    document.getElementById('we-emoji').value     = item.emoji;
+    document.getElementById('we-word').value      = item.word;
+    document.getElementById('we-syllables').value = item.syllables.join(',');
+  } else {
+    document.getElementById('we-emoji').value     = '';
+    document.getElementById('we-word').value      = '';
+    document.getElementById('we-syllables').value = '';
+  }
+  document.getElementById('modal-word-edit').classList.add('open');
+}
+
+function wordEditSave() {
+  const { lang, tier } = wlState;
+  const emoji     = document.getElementById('we-emoji').value.trim() || '📝';
+  const word      = document.getElementById('we-word').value.trim().toUpperCase();
+  const syllables = document.getElementById('we-syllables').value.trim().toUpperCase()
+                      .split(',').map(s=>s.trim()).filter(Boolean);
+  if (!word || !syllables.length) { alert('Completá la palabra y las sílabas/palabras'); return; }
+  const isPhrase = tier === 3;
+  const item = { emoji, word, syllables, ...(isPhrase ? {isPhrase:true} : {}) };
+  if (wordEditIdx === -1) {
+    wordDB[lang][tier].push(item);
+  } else {
+    wordDB[lang][tier][wordEditIdx] = item;
+  }
+  saveWordDB();
+  closeModal('word-edit');
+  renderWordList();
+}
+
+function wordEditDelete() {
+  const { lang, tier } = wlState;
+  if (wordEditIdx === -1) return;
+  if (wordDB[lang][tier].length <= 1) { alert('Debe quedar al menos una entrada'); return; }
+  wordDB[lang][tier].splice(wordEditIdx, 1);
+  saveWordDB();
+  closeModal('word-edit');
+  renderWordList();
+}
+
 // ─── SÍLABAS ──────────────────────────────────────────────────────────────────
-function initSilaba()  { const t=getTier(); currentSilaba=Math.floor(Math.random()*silabasByTier[t].length); selectedSyllables=[]; renderSilaba(); }
-function nextSilaba()  { const t=getTier(); currentSilaba=Math.floor(Math.random()*silabasByTier[t].length); selectedSyllables=[]; renderSilaba(); }
+function initSilaba()  { const list=getWordList(getTier()); currentSilaba=Math.floor(Math.random()*list.length); selectedSyllables=[]; renderSilaba(); }
+function nextSilaba()  { const list=getWordList(getTier()); currentSilaba=Math.floor(Math.random()*list.length); selectedSyllables=[]; renderSilaba(); }
 function resetSilaba() { selectedSyllables=[]; renderSilaba(); }
 
 function renderSilaba() {
-  const w=silabasByTier[getTier()][currentSilaba];
-  document.getElementById('silabaTarget').innerHTML=`Armá la palabra: <strong style="color:var(--gold);font-size:1.1rem">${w.emoji} ${w.word}</strong>`;
+  const tier=getTier();
+  const list=getWordList(tier);
+  const w=list[currentSilaba % list.length];
+  const isPhrase=!!w.isPhrase;
+  const label=isPhrase?'Armá la frase:':'Armá la palabra:';
+  document.getElementById('silabaTarget').innerHTML=`${label} <strong style="color:var(--gold);font-size:1.1rem">${w.emoji} ${w.word}</strong>`;
   const slots=document.getElementById('wordSlots');
   slots.innerHTML='';
   w.syllables.forEach((_,i)=>{
     const slot=document.createElement('div');
-    slot.className='word-slot'; slot.id='slot-'+i;
+    slot.className='word-slot'+(isPhrase?' word-mode':''); slot.id='slot-'+i;
     slots.appendChild(slot);
   });
   const pieces=document.getElementById('silabaPieces');
   pieces.innerHTML='';
   shuffle(w.syllables).forEach(syl=>{
     const card=document.createElement('div');
-    card.className='syl-card'; card.textContent=syl; card.dataset.syl=syl;
+    card.className='syl-card'+(isPhrase?' word-card':''); card.textContent=syl; card.dataset.syl=syl;
     card.onclick=()=>selectSylaba(card,syl);
     pieces.appendChild(card);
   });
@@ -856,19 +1224,20 @@ function renderSilaba() {
 }
 
 function selectSylaba(card, syl) {
-  const w=silabasByTier[getTier()][currentSilaba];
+  const list=getWordList(getTier());
+  const w=list[currentSilaba % list.length];
   if(card.classList.contains('selected')) return;
   card.classList.add('selected');
   selectedSyllables.push(syl);
   const slot=document.getElementById('slot-'+(selectedSyllables.length-1));
   if(slot){slot.textContent=syl;slot.classList.add('filled');}
   if(selectedSyllables.length===w.syllables.length){
-    const ww=silabasByTier[getTier()][currentSilaba];
+    const ww=list[currentSilaba % list.length];
     const formed=selectedSyllables.join('');
     const target=ww.syllables.join('');
     const fb=document.getElementById('silabaFeedback');
     if(formed===target){
-      fb.textContent=`¡${ww.emoji} ${ww.word}! ¡Lo armaste! 🎉`;
+      fb.textContent=ww.isPhrase?`¡${ww.emoji} "${ww.word}"! ¡Leíste la frase! 🎉`:`¡${ww.emoji} ${ww.word}! ¡Lo armaste! 🎉`;
       fb.className='feedback show ok';
       addStar(300,400);
       document.getElementById('nextSilabaBtn').style.display='inline-block';
@@ -1132,6 +1501,7 @@ async function deleteAllHistory() {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {
   loadConfig();
+  initWordDB();
   loadData();
   updateHero();
   updateSessionTab();
