@@ -835,7 +835,21 @@ let wordDB = null;
 function initWordDB() {
   try {
     const s = localStorage.getItem('mateo_words');
-    if (s) { wordDB = JSON.parse(s); return; }
+    if (s) {
+      const saved = JSON.parse(s);
+      // Merge: add any missing languages/tiers from DEFAULT_WORDS
+      wordDB = JSON.parse(JSON.stringify(DEFAULT_WORDS));
+      for (const lang of ['es','en']) {
+        if (saved[lang]) {
+          for (let t = 0; t < 4; t++) {
+            if (saved[lang][t] && saved[lang][t].length > 0) {
+              wordDB[lang][t] = saved[lang][t];
+            }
+          }
+        }
+      }
+      return;
+    }
   } catch(e) {}
   wordDB = JSON.parse(JSON.stringify(DEFAULT_WORDS));
 }
@@ -846,7 +860,18 @@ async function loadWordDBFromSupabase() {
     const { data, error } = await sbClient.from('word_bank').select('data').limit(1).maybeSingle();
     if (error) throw error;
     if (data && data.data) {
-      wordDB = data.data;
+      const saved = data.data;
+      // Merge cloud data with defaults to fill any missing lang/tier
+      wordDB = JSON.parse(JSON.stringify(DEFAULT_WORDS));
+      for (const lang of ['es','en']) {
+        if (saved[lang]) {
+          for (let t = 0; t < 4; t++) {
+            if (saved[lang][t] && saved[lang][t].length > 0) {
+              wordDB[lang][t] = saved[lang][t];
+            }
+          }
+        }
+      }
       localStorage.setItem('mateo_words', JSON.stringify(wordDB));
     }
   } catch(e) { console.warn('word_bank load:', e.message); }
