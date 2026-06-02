@@ -378,7 +378,19 @@
 alter table sesiones enable row level security;
 create policy "public read"   on sesiones for select using (true);
 create policy "public insert" on sesiones for insert with check (true);
-create policy "public delete" on sesiones for delete using (true);</pre>
+create policy "public delete" on sesiones for delete using (true);
+
+-- Banco de palabras (una sola fila JSON)
+create table word_bank (
+  id         bigserial primary key,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  data       jsonb not null
+);
+alter table word_bank enable row level security;
+create policy "public read"   on word_bank for select using (true);
+create policy "public insert" on word_bank for insert with check (true);
+create policy "public update" on word_bank for update using (true);</pre>
         <p>4. Ir a <strong style="color:white">Settings → API</strong></p>
         <p>5. Copiar <strong style="color:white">Project URL</strong> y <strong style="color:white">anon public key</strong></p>
       </div>
@@ -828,14 +840,37 @@ function initWordDB() {
   wordDB = JSON.parse(JSON.stringify(DEFAULT_WORDS));
 }
 
-function saveWordDB() {
-  try { localStorage.setItem('mateo_words', JSON.stringify(wordDB)); } catch(e) {}
+async function loadWordDBFromSupabase() {
+  if (!sbClient) return;
+  try {
+    const { data, error } = await sbClient.from('word_bank').select('data').limit(1).maybeSingle();
+    if (error) throw error;
+    if (data && data.data) {
+      wordDB = data.data;
+      localStorage.setItem('mateo_words', JSON.stringify(wordDB));
+    }
+  } catch(e) { console.warn('word_bank load:', e.message); }
 }
 
-function resetWordDB() {
+async function saveWordDB() {
+  // Guardar en localStorage primero (inmediato)
+  try { localStorage.setItem('mateo_words', JSON.stringify(wordDB)); } catch(e) {}
+  // Guardar en Supabase (upsert fila única)
+  if (!sbClient) return;
+  try {
+    const { data: existing } = await sbClient.from('word_bank').select('id').limit(1).maybeSingle();
+    if (existing) {
+      await sbClient.from('word_bank').update({ data: wordDB, updated_at: new Date().toISOString() }).eq('id', existing.id);
+    } else {
+      await sbClient.from('word_bank').insert([{ data: wordDB }]);
+    }
+  } catch(e) { console.warn('word_bank save:', e.message); }
+}
+
+async function resetWordDB() {
   if (!confirm('¿Restaurar todas las palabras y frases a los valores originales?')) return;
   wordDB = JSON.parse(JSON.stringify(DEFAULT_WORDS));
-  saveWordDB();
+  await saveWordDB();
   renderWordList();
 }
 
@@ -905,6 +940,8 @@ async function initSupabase() {
     saveData();
     updateHero();
     setSyncStatus('ok', `🟢 ${sessions.length} sesiones · ⭐${state.stars}`);
+    // Cargar banco de palabras desde la nube
+    await loadWordDBFromSupabase();
   } catch(e) {
     console.error('Supabase:', e);
     setSyncStatus('err', '🔴 ' + (e.message || 'Error'));
@@ -1162,7 +1199,7 @@ function openWordEdit(idx) {
   document.getElementById('modal-word-edit').classList.add('open');
 }
 
-function wordEditSave() {
+async function wordEditSave() {
   const { lang, tier } = wlState;
   const emoji     = document.getElementById('we-emoji').value.trim() || '📝';
   const word      = document.getElementById('we-word').value.trim().toUpperCase();
@@ -1176,17 +1213,17 @@ function wordEditSave() {
   } else {
     wordDB[lang][tier][wordEditIdx] = item;
   }
-  saveWordDB();
+  await saveWordDB();
   closeModal('word-edit');
   renderWordList();
 }
 
-function wordEditDelete() {
+async function wordEditDelete() {
   const { lang, tier } = wlState;
   if (wordEditIdx === -1) return;
   if (wordDB[lang][tier].length <= 1) { alert('Debe quedar al menos una entrada'); return; }
   wordDB[lang][tier].splice(wordEditIdx, 1);
-  saveWordDB();
+  await saveWordDB();
   closeModal('word-edit');
   renderWordList();
 }
