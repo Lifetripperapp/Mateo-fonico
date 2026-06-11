@@ -75,6 +75,8 @@
   .option-btn{background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:16px;padding:16px 12px;color:white;font-family:'Fredoka One',cursive;font-size:1.3rem;cursor:pointer;transition:all 0.2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
   .option-btn .opt-emoji{font-size:2rem;}
   .option-btn .opt-word{font-size:1.15rem;font-family:'Fredoka One',cursive;color:white;letter-spacing:0.5px;}
+  .option-btn.no-emoji .opt-emoji{display:none;}
+  .option-btn.no-emoji .opt-word{font-size:1.6rem;letter-spacing:1px;}
   .option-btn:hover{border-color:var(--gold);transform:translateY(-2px);}
   .option-btn.correct{background:rgba(78,205,196,0.3);border-color:var(--green);animation:correctPop 0.4s;}
   .option-btn.wrong{background:rgba(233,69,96,0.3);border-color:var(--accent);animation:wrongShake 0.4s;}
@@ -1358,6 +1360,7 @@ function renderFonema() {
     const btn=document.createElement('button');
     btn.className='option-btn';
     btn.innerHTML=`<span class="opt-emoji">${opt.emoji}</span><span class="opt-word">${opt.word}</span>`;
+    if(getTier()>=2) btn.classList.add('no-emoji');
     btn.onclick=(e)=>checkFonema(opt.correct,btn,e,f.options.find(o=>o.correct).word);
     grid.appendChild(btn);
   });
