@@ -1575,7 +1575,7 @@ function resetSessionCounters() {
 
 function showResetConfirm()  { document.getElementById('resetConfirm').classList.add('show'); }
 function hideResetConfirm()  { document.getElementById('resetConfirm').classList.remove('show'); }
-function resetSession()      { resetSessionCounters(); hideResetConfirm(); }
+function resetSession()      { resetSessionCounters(); saveData(); updateHero(); hideResetConfirm(); }
 
 // ─── HISTORIAL ────────────────────────────────────────────────────────────────
 function updateHistorialTab() {
