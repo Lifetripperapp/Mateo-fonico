@@ -1000,7 +1000,7 @@ function loadConfig() {
 async function confirmResetRPG() {
   if (!confirm('¿Borrar TODO el historial y resetear el nivel a cero?\nEsta acción no se puede deshacer.')) return;
   if(sbClient && currentUser){
-    try{ await sbClient.from('sesiones').delete().eq('user_id', currentUser.id); }catch(e){}
+    try{ await sbWithTimeout(sbClient.from('sesiones').delete().eq('user_id', currentUser.id)); }catch(e){}
   }
   sessions=[]; state.stars=0; state.correct=0;
   saveData(); updateHero(); updateHistorialTab();
@@ -1099,7 +1099,7 @@ async function runDiagnostic() {
   // 3. Get session from Supabase SDK
   if(sbClient){
     try{
-      const {data, error} = await sbClient.auth.getSession();
+      const {data, error} = await sbWithTimeout(sbClient.auth.getSession(), 4000);
       const s = data?.session;
       if(s){
         const expiry = new Date(s.expires_at * 1000);
@@ -1118,7 +1118,7 @@ async function runDiagnostic() {
 
     // 4. Test SELECT
     try{
-      const {data, error} = await sbClient.from('sesiones').select('count').limit(1);
+      const {data, error} = await sbWithTimeout(sbClient.from('sesiones').select('count').limit(1));
       log('SELECT test: ' + (error ? '❌ ' + (error.message||JSON.stringify(error)) : '✅ ok'));
     }catch(e){ log('SELECT error: ' + e.message); }
 
@@ -1129,11 +1129,11 @@ async function runDiagnostic() {
         total: 0, pct: 0, stars: 0, streak: 0, games: 0, duration: 0
       };
       try{
-        const {data, error} = await sbClient.from('sesiones').insert([testRecord]).select();
+        const {data, error} = await sbWithTimeout(sbClient.from('sesiones').insert([testRecord]).select());
         if(error) throw error;
         log('INSERT test: ✅ id=' + data[0].id);
         // cleanup
-        await sbClient.from('sesiones').delete().eq('id', data[0].id);
+        await sbWithTimeout(sbClient.from('sesiones').delete().eq('id', data[0].id));
         log('DELETE test (cleanup): ✅');
       }catch(e){
         const msg = e?.message || e?.details || JSON.stringify(e);
@@ -1148,7 +1148,10 @@ async function runDiagnostic() {
 }
 
 async function doSignOut() {
-  await sbClient.auth.signOut();
+  // Clear Supabase session from localStorage directly (no network call needed)
+  const sbKey = 'sb-knbwioneycesedlugbxo-auth-token';
+  localStorage.removeItem(sbKey);
+  try { await Promise.race([sbClient.auth.signOut(), new Promise(r=>setTimeout(r,2000))]); } catch(e){}
   currentUser = null;
   sessions = []; state.stars = 0;
   saveData(); updateHero();
@@ -1176,8 +1179,8 @@ async function onUserSignedIn(user) {
 async function loadCloudData() {
   if (!sbClient || !currentUser) return;
   try {
-    const {data, error} = await sbClient
-      .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50);
+    const {data, error} = await sbWithTimeout(sbClient
+      .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50));
     if (error) throw error;
     sessions = data || [];
     // Always trust cloud as source of truth for historical stars
@@ -1190,6 +1193,10 @@ async function loadCloudData() {
     console.error('loadCloudData:', e);
     setSyncStatus('err', '🔴 ' + (e.message || 'Error'));
   }
+}
+
+function sbWithTimeout(promise, ms=5000) {
+  return Promise.race([promise, new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timeout ('+ms+'ms) — Supabase no responde')),ms))]);
 }
 
 function initSupabase() {
@@ -1761,7 +1768,7 @@ async function saveSession() {
   let savedToCloud = false;
   if(sbClient && currentUser){
     try{
-      const {error}=await sbClient.from('sesiones').insert([record]);
+      const {error}=await sbWithTimeout(sbClient.from('sesiones').insert([record]));
       if(!error){ setSyncStatus('ok','🟢 Guardado en nube'); savedToCloud=true; }
       else throw error;
     } catch(e){
@@ -1772,7 +1779,7 @@ async function saveSession() {
     if(savedToCloud){
       // Re-fetch to keep list accurate
       try{
-        const {data}=await sbClient.from('sesiones').select('*').order('fecha',{ascending:false}).limit(50);
+        const {data}=await sbWithTimeout(sbClient.from('sesiones').select('*').order('fecha',{ascending:false}).limit(50));
         if(data) sessions=data;
       }catch(e){}
     } else {
@@ -1905,7 +1912,7 @@ async function deleteSession() {
   const s=sessions[selectedSessionIdx];
   if(sbClient && currentUser && s.id){
     try{
-      const {error} = await sbClient.from('sesiones').delete().eq('id',s.id);
+      const {error} = await sbWithTimeout(sbClient.from('sesiones').delete().eq('id',s.id));
       if(error){ const msg=error?.message||JSON.stringify(error); console.error('deleteSession:',msg); setSyncStatus('err','🔴 '+msg); }
       else setSyncStatus('ok','🟢 Sesión borrada');
     }catch(e){ console.error('deleteSession:',e); }
@@ -1926,7 +1933,7 @@ async function deleteAllHistory() {
   if(sbClient && currentUser){
     setSyncStatus('off','🔄 Borrando…');
     try{
-      const {error} = await sbClient.from('sesiones').delete().eq('user_id', currentUser.id);
+      const {error} = await sbWithTimeout(sbClient.from('sesiones').delete().eq('user_id', currentUser.id));
       if(error) throw error;
       setSyncStatus('ok','🟢 Historial borrado en la nube');
     } catch(e){
