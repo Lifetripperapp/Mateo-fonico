@@ -997,10 +997,10 @@ function loadConfig() {
 
 async function confirmResetRPG() {
   if (!confirm('¿Borrar TODO el historial y resetear el nivel a cero?\nEsta acción no se puede deshacer.')) return;
-  if(sbClient){
-    try{ await sbClient.from('sesiones').delete().neq('id',0); }catch(e){}
+  if(sbClient && currentUser){
+    try{ await sbClient.from('sesiones').delete().eq('user_id', currentUser.id); }catch(e){}
   }
-  sessions=[]; state.stars=0;
+  sessions=[]; state.stars=0; state.correct=0;
   saveData(); updateHero(); updateHistorialTab();
   alert('Historial y nivel reseteados.');
 }
