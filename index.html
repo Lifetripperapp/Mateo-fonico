@@ -1114,8 +1114,8 @@ async function loadCloudData() {
       .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50);
     if (error) throw error;
     sessions = data || [];
-    const cloudStars = sessions.reduce((sum, s) => sum + (s.stars || s.correct || 0), 0);
-    state.stars = Math.max(state.stars, cloudStars);
+    // Always trust cloud as source of truth for historical stars
+    state.stars = sessions.reduce((sum, s) => sum + (s.stars || s.correct || 0), 0);
     saveData(); updateHero();
     setSyncStatus('ok', `🟢 ${sessions.length} sesiones · ⭐${totalStars()}`);
     await loadWordDBFromSupabase();
@@ -1149,20 +1149,25 @@ let cadenaChain = [];
 let cadenaTurno = 0;
 
 // ─── PERSISTENCE ──────────────────────────────────────────────────────────────
+function saveData() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      stars: state.stars,
+      correct: state.correct,  // persist in-progress session
+      sessions
+    }));
+  } catch(e) {}
+}
+
 function loadData() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const d = JSON.parse(raw);
-      state.stars = d.stars || 0;
-      if (!sbClient) sessions = d.sessions || [];
+      state.stars   = d.stars   || 0;
+      state.correct = d.correct || 0;  // restore in-progress session
+      if (!currentUser) sessions = d.sessions || [];
     }
-  } catch(e) {}
-}
-
-function saveData() {
-  try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({stars:state.stars, sessions}));
   } catch(e) {}
 }
 
@@ -1217,6 +1222,7 @@ function addStar(x, y) {
   state.streak++;
   state.correct++;
   state.games++;
+  saveData();
   updateHero();
   const burst=document.createElement('div');
   burst.className='score-burst';
@@ -1687,7 +1693,7 @@ async function saveSession() {
   };
 
   let savedToCloud = false;
-  if(sbClient){
+  if(sbClient && currentUser){
     try{
       const {error}=await sbClient.from('sesiones').insert([record]);
       if(!error){ setSyncStatus('ok','🟢 Guardado en nube'); savedToCloud=true; }
