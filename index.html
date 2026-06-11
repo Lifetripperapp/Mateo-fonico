@@ -961,9 +961,15 @@ async function resetWordDB() {
 function getWordList(tier) {
   if (!wordDB) return [];
   const t = Math.min(tier, 3);
-  if (CFG.lang === 'en')  return wordDB.en[t] || [];
-  if (CFG.lang === 'mix') return shuffle([...(wordDB.es[t]||[]), ...(wordDB.en[t]||[])]);
-  return wordDB.es[t] || [];
+  const tag = (arr, lang) => arr.map(w => ({...w, _lang: lang}));
+  if (CFG.lang === 'en')  return tag(wordDB.en[t] || [], 'en');
+  if (CFG.lang === 'mix') return shuffle([...tag(wordDB.es[t]||[], 'es'), ...tag(wordDB.en[t]||[], 'en')]);
+  return tag(wordDB.es[t] || [], 'es');
+}
+
+function langFlag(w) {
+  if (CFG.lang !== 'mix') return '';
+  return w._lang === 'en' ? '🇺🇸 ' : '🇦🇷 ';
 }
 
 function setLang(lang) {
@@ -1544,7 +1550,7 @@ function renderSilaba() {
   if (w.isStepPhrase) { renderSilabaStepPhrase(w); return; }
   // ── Modo palabra simple ──
   const showEmoji = getTier() < 2;
-  document.getElementById('silabaTarget').innerHTML=`Armá la palabra: <strong style="color:var(--gold);font-size:${showEmoji?'1.1rem':'1.4rem'}">${showEmoji?w.emoji+' ':''}${w.word}</strong>`;
+  document.getElementById('silabaTarget').innerHTML=`Armá la palabra: <strong style="color:var(--gold);font-size:${showEmoji?'1.1rem':'1.4rem'}">${showEmoji?w.emoji+' ':''}${langFlag(w)}${w.word}</strong>`;
   const slots=document.getElementById('wordSlots');
   slots.innerHTML='';
   w.syllables.forEach((_,i)=>{
@@ -1568,7 +1574,7 @@ function renderSilaba() {
 // ── Modo Frase Paso a Paso ──────────────────────────────────────────────────
 function renderSilabaStepPhrase(w) {
   // Barra de frase arriba
-  let bar = `<div class="phrase-bar">${w.emoji} `;
+  let bar = `<div class="phrase-bar">${getTier()<2?w.emoji+' ':''}${langFlag(w)}`;
   w.words.forEach((wd, i) => {
     const cls = i < phraseWordIdx ? 'pw pw-done' :
                 i === phraseWordIdx ? 'pw pw-active' : 'pw pw-pending';
