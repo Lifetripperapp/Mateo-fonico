@@ -1636,7 +1636,7 @@ function selectSylaba(card, syl) {
           }, 700);
         }
       } else {
-        fb.textContent=`¡${getTier()<2?w.emoji+' ':''}${w.word}! ¡Lo armaste! 🎉`;
+        fb.textContent=`¡${w.emoji} ${w.word}! ¡Lo armaste! 🎉`;
         fb.className='feedback show ok';
         addStar(300,400);
         document.getElementById('nextSilabaBtn').style.display='inline-block';
@@ -1667,7 +1667,7 @@ function completePhraseMode(w) {
   document.getElementById('wordSlots').innerHTML='';
   document.getElementById('silabaPieces').innerHTML='';
   const fb = document.getElementById('silabaFeedback');
-  fb.textContent = `¡${getTier()<2?w.emoji+' ':''}${w.word}! ¡Lo leíste! 🌟`;
+  fb.textContent = `¡${w.emoji} ${w.word}! ¡Lo leíste! 🌟`;
   fb.className='feedback show ok';
   document.getElementById('nextSilabaBtn').style.display='inline-block';
 }
