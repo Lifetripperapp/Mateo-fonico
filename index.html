@@ -180,9 +180,60 @@
   .we-input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:white;font-family:'Nunito',sans-serif;font-size:0.9rem;width:100%;box-sizing:border-box;}
   .we-input:focus{outline:none;border-color:var(--purple);}
   @media(max-width:480px){.title{font-size:1.6rem;}.big-letter{font-size:4.5rem;}.tab{font-size:0.6rem;padding:8px 2px;}.cfg-input{width:140px;}}
+
+  /* ── AUTH SCREEN ── */
+  #authScreen{position:fixed;inset:0;background:var(--sky);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+  #authScreen.hidden{display:none;}
+  .auth-card{background:var(--deep);border:1px solid rgba(255,255,255,0.12);border-radius:28px;padding:32px 28px;width:100%;max-width:380px;animation:modalIn 0.4s cubic-bezier(.34,1.56,.64,1);}
+  .auth-title{font-family:'Fredoka One',cursive;font-size:1.8rem;background:linear-gradient(135deg,var(--gold),var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:4px;}
+  .auth-sub{text-align:center;font-size:0.82rem;color:rgba(255,255,255,0.4);margin-bottom:24px;}
+  .auth-tabs{display:flex;background:rgba(255,255,255,0.05);border-radius:12px;padding:3px;margin-bottom:20px;}
+  .auth-tab{flex:1;padding:8px;border-radius:10px;border:none;background:transparent;color:rgba(255,255,255,0.4);font-family:'Nunito',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s;}
+  .auth-tab.active{background:var(--card);color:white;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+  .auth-field{margin-bottom:14px;}
+  .auth-label{font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;}
+  .auth-input{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px 14px;color:white;font-family:'Nunito',sans-serif;font-size:0.95rem;transition:border-color 0.2s;}
+  .auth-input:focus{outline:none;border-color:var(--purple);}
+  .auth-input::placeholder{color:rgba(255,255,255,0.2);}
+  .auth-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--purple),#7c3aed);color:white;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;margin-top:6px;transition:all 0.2s;box-shadow:0 4px 15px rgba(168,85,247,0.4);}
+  .auth-btn:hover{transform:translateY(-2px);}
+  .auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .auth-error{background:rgba(233,69,96,0.15);border:1px solid rgba(233,69,96,0.4);border-radius:10px;padding:10px 12px;font-size:0.82rem;color:var(--accent);margin-top:12px;display:none;}
+  .auth-error.show{display:block;}
+  .auth-name-field{display:none;}
+  .auth-name-field.show{display:block;}
 </style>
 </head>
 <body>
+
+<!-- ══ PANTALLA DE LOGIN ══ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-title">🚀 Aventura Fónica</div>
+    <div class="auth-sub">Iniciá sesión para guardar el progreso</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="setAuthTab('login')">Ingresar</button>
+      <button class="auth-tab" onclick="setAuthTab('signup')">Crear cuenta</button>
+    </div>
+    <div class="auth-name-field" id="authNameField">
+      <div class="auth-field">
+        <label class="auth-label">Nombre del niño</label>
+        <input class="auth-input" id="auth-child-name" placeholder="Ej: Mateo">
+      </div>
+    </div>
+    <div class="auth-field">
+      <label class="auth-label">Email</label>
+      <input class="auth-input" id="auth-email" type="email" placeholder="tu@email.com">
+    </div>
+    <div class="auth-field">
+      <label class="auth-label">Contraseña</label>
+      <input class="auth-input" id="auth-password" type="password" placeholder="••••••••">
+    </div>
+    <button class="auth-btn" id="authBtn" onclick="doAuth()">Ingresar ✨</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
 <div class="container">
   <div class="header">
     <div class="title">🚀 La Aventura Fónica</div>
@@ -312,21 +363,13 @@
         <div><div class="cfg-label">Nombre del niño</div><div class="cfg-sub">Aparece en el saludo</div></div>
         <input type="text" class="cfg-input" id="cfg-name" placeholder="Mateo" oninput="saveConfig()">
       </div>
-      <div class="cfg-row">
-        <div><div class="cfg-label">Supabase URL</div><div class="cfg-sub">https://xxx.supabase.co</div></div>
-        <input type="text" class="cfg-input" id="cfg-sb-url" placeholder="https://..." oninput="saveConfig()">
-      </div>
-      <div class="cfg-row">
-        <div><div class="cfg-label">Anon Key</div><div class="cfg-sub">Clave pública del proyecto</div></div>
-        <input type="text" class="cfg-input" id="cfg-sb-key" placeholder="eyJhb..." oninput="saveConfig()">
-      </div>
       <div class="cfg-row" style="border-bottom:none">
-        <div class="cfg-label">Estado Supabase</div>
-        <div id="sync-status" class="sync-pill sync-off">⚫ Sin configurar</div>
+        <div><div class="cfg-label">Cuenta</div><div class="cfg-sub" id="cfg-account-email">—</div></div>
+        <div id="sync-status" class="sync-pill sync-off">⚫ —</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-        <button class="play-btn" onclick="testSupabase()">🔗 Probar conexión</button>
-        <button class="play-btn danger" onclick="confirmResetRPG()" style="font-size:0.85rem;padding:10px 16px;">⚠️ Borrar historial y nivel</button>
+        <button class="play-btn danger" onclick="confirmResetRPG()" style="font-size:0.85rem;padding:10px 16px;">⚠️ Borrar historial</button>
+        <button class="play-btn ghost" onclick="doSignOut()" style="font-size:0.85rem;padding:10px 16px;">🚪 Cerrar sesión</button>
       </div>
     </div>
 
@@ -366,13 +409,16 @@
     </div>
 
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:20px;">
-      <div style="font-family:'Fredoka One',cursive;color:var(--gold);margin-bottom:12px;">📖 Cómo configurar Supabase (gratis)</div>
+      <div style="font-family:'Fredoka One',cursive;color:var(--gold);margin-bottom:12px;">📖 Setup Supabase (una sola vez)</div>
       <div style="font-size:0.83rem;color:rgba(255,255,255,0.7);line-height:1.7;">
-        <p>1. Crear cuenta en <strong style="color:white">supabase.com</strong></p>
-        <p>2. Crear un nuevo proyecto</p>
-        <p>3. En el Editor SQL, ejecutar:</p>
-        <pre class="sql-box">create table sesiones (
+        <p>En el Editor SQL de tu proyecto ejecutar:</p>
+        <pre class="sql-box">-- 1. Habilitar Auth por email en
+-- Authentication → Providers → Email
+
+-- 2. Tablas
+create table sesiones (
   id         bigserial primary key,
+  user_id    uuid references auth.users(id) on delete cascade,
   created_at timestamptz default now(),
   fecha      bigint,
   correct    integer default 0,
@@ -385,23 +431,21 @@
   duration   bigint  default 0
 );
 alter table sesiones enable row level security;
-create policy "public read"   on sesiones for select using (true);
-create policy "public insert" on sesiones for insert with check (true);
-create policy "public delete" on sesiones for delete using (true);
+create policy "own read"   on sesiones for select using (auth.uid()=user_id);
+create policy "own insert" on sesiones for insert with check (auth.uid()=user_id);
+create policy "own delete" on sesiones for delete using (auth.uid()=user_id);
 
--- Banco de palabras (una sola fila JSON)
 create table word_bank (
   id         bigserial primary key,
+  user_id    uuid references auth.users(id) on delete cascade,
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   data       jsonb not null
 );
 alter table word_bank enable row level security;
-create policy "public read"   on word_bank for select using (true);
-create policy "public insert" on word_bank for insert with check (true);
-create policy "public update" on word_bank for update using (true);</pre>
-        <p>4. Ir a <strong style="color:white">Settings → API</strong></p>
-        <p>5. Copiar <strong style="color:white">Project URL</strong> y <strong style="color:white">anon public key</strong></p>
+create policy "own read"   on word_bank for select using (auth.uid()=user_id);
+create policy "own insert" on word_bank for insert with check (auth.uid()=user_id);
+create policy "own update" on word_bank for update using (auth.uid()=user_id);</pre>
       </div>
     </div>
   </div>
@@ -833,13 +877,12 @@ const CADENA_POOL_BY_TIER = [
   ['MARIPOSA','ELEFANTE','COCODRILO','DINOSAURIO','VENTANA','TORTUGA','CAMELLO','HELICÓPTERO','MURCIÉLAGO','CHOCOLATE']
 ];
 
+// ─── SUPABASE CREDENTIALS (public anon key — safe to expose) ─────────────────
+const SB_URL = 'https://knbwioneycesedlugbxo.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYndpb25leWNlc2VkbHVnYnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzA5OTksImV4cCI6MjA5NTkwNjk5OX0.uMTeaZKNHkZvzP4U4CosXICe9GgTG7XOvqP4aehqA60';
+
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-let CFG = {
-  name:  'Mateo',
-  lang:  'es',
-  sbUrl: 'https://knbwioneycesedlugbxo.supabase.co',
-  sbKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYndpb25leWNlc2VkbHVnYnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzA5OTksImV4cCI6MjA5NTkwNjk5OX0.uMTeaZKNHkZvzP4U4CosXICe9GgTG7XOvqP4aehqA60'
-};
+let CFG = { name: 'Mateo', lang: 'es' };
 
 // ─── WORD DATABASE ────────────────────────────────────────────────────────────
 let wordDB = null;
@@ -899,7 +942,7 @@ async function saveWordDB() {
     if (existing) {
       await sbClient.from('word_bank').update({ data: wordDB, updated_at: new Date().toISOString() }).eq('id', existing.id);
     } else {
-      await sbClient.from('word_bank').insert([{ data: wordDB }]);
+      await sbClient.from('word_bank').insert([{ user_id: currentUser?.id, data: wordDB }]);
     }
   } catch(e) { console.warn('word_bank save:', e.message); }
 }
@@ -928,9 +971,7 @@ function setLang(lang) {
 }
 
 function saveConfig() {
-  CFG.name  = document.getElementById('cfg-name').value.trim() || 'Mateo';
-  CFG.sbUrl = document.getElementById('cfg-sb-url').value.trim();
-  CFG.sbKey = document.getElementById('cfg-sb-key').value.trim();
+  CFG.name = document.getElementById('cfg-name').value.trim() || 'Mateo';
   localStorage.setItem('mateo_cfg', JSON.stringify(CFG));
   document.getElementById('heroNameTitle').textContent = CFG.name;
   document.getElementById('heroNameBar').textContent   = CFG.name + ' el ' + getCurrentLevel().name;
@@ -941,10 +982,12 @@ function loadConfig() {
     const s = localStorage.getItem('mateo_cfg');
     if (s) CFG = {...CFG, ...JSON.parse(s)};
   } catch(e) {}
-  document.getElementById('cfg-name').value   = CFG.name;
-  document.getElementById('cfg-sb-url').value = CFG.sbUrl;
-  document.getElementById('cfg-sb-key').value = CFG.sbKey;
+  document.getElementById('cfg-name').value = CFG.name;
   document.getElementById('heroNameTitle').textContent = CFG.name;
+  if (currentUser?.email) {
+    const el = document.getElementById('cfg-account-email');
+    if (el) el.textContent = currentUser.email;
+  }
   // sync lang buttons
   ['es','en','mix'].forEach(l => {
     const btn = document.getElementById('lang-btn-'+l);
@@ -962,45 +1005,126 @@ async function confirmResetRPG() {
   alert('Historial y nivel reseteados.');
 }
 
-// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+// ─── SUPABASE + AUTH ──────────────────────────────────────────────────────────
 let sbClient = null;
-
-async function initSupabase() {
-  if (!CFG.sbUrl || !CFG.sbKey || CFG.sbUrl.includes('YOUR')) return;
-  try {
-    sbClient = supabase.createClient(CFG.sbUrl, CFG.sbKey);
-    const {data, error} = await sbClient
-      .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50);
-    if (error) throw error;
-    sessions = data || [];
-    // Recalculate stars from cloud history; keep localStorage value if it's higher
-    // (user may have earned stars in a session not yet saved to Supabase)
-    const cloudStars = sessions.reduce((sum, s) => sum + (s.stars || s.correct || 0), 0);
-    state.stars = Math.max(state.stars, cloudStars);
-    saveData();
-    updateHero();
-    setSyncStatus('ok', `🟢 ${sessions.length} sesiones · ⭐${state.stars}`);
-    // Cargar banco de palabras desde la nube
-    await loadWordDBFromSupabase();
-  } catch(e) {
-    console.error('Supabase:', e);
-    setSyncStatus('err', '🔴 ' + (e.message || 'Error'));
-    sbClient = null;
-  }
-}
-
-async function testSupabase() {
-  saveConfig();
-  setSyncStatus('off', '🔄 Conectando…');
-  sbClient = null;
-  await initSupabase();
-}
+let currentUser = null;
+let authMode = 'login'; // 'login' | 'signup'
 
 function setSyncStatus(type, msg) {
   const el = document.getElementById('sync-status');
   if (!el) return;
   el.className = 'sync-pill sync-' + type;
   el.textContent = msg;
+}
+
+function showAuthScreen(show) {
+  document.getElementById('authScreen').classList.toggle('hidden', !show);
+}
+
+function setAuthTab(mode) {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i) =>
+    t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='signup')));
+  document.getElementById('authBtn').textContent = mode === 'login' ? 'Ingresar ✨' : 'Crear cuenta 🚀';
+  document.getElementById('authNameField').classList.toggle('show', mode === 'signup');
+  document.getElementById('authError').classList.remove('show');
+}
+
+async function doAuth() {
+  const email    = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl    = document.getElementById('authError');
+  const btn      = document.getElementById('authBtn');
+  if (!email || !password) { showAuthError('Completá email y contraseña'); return; }
+  btn.disabled = true;
+  btn.textContent = '⏳ Espera…';
+  errEl.classList.remove('show');
+  try {
+    let result;
+    if (authMode === 'login') {
+      result = await sbClient.auth.signInWithPassword({ email, password });
+    } else {
+      const childName = document.getElementById('auth-child-name').value.trim() || 'Mi niño';
+      result = await sbClient.auth.signUp({ email, password,
+        options: { data: { child_name: childName } }
+      });
+    }
+    if (result.error) throw result.error;
+    // onAuthStateChange handles the rest
+  } catch(e) {
+    showAuthError(translateAuthError(e.message));
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Ingresar ✨' : 'Crear cuenta 🚀';
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+
+function translateAuthError(msg) {
+  if (msg.includes('Invalid login')) return 'Email o contraseña incorrectos';
+  if (msg.includes('already registered')) return 'Ese email ya tiene cuenta — usá Ingresar';
+  if (msg.includes('Password should')) return 'La contraseña debe tener al menos 6 caracteres';
+  if (msg.includes('valid email')) return 'Ingresá un email válido';
+  return msg;
+}
+
+async function doSignOut() {
+  await sbClient.auth.signOut();
+  currentUser = null;
+  sessions = []; state.stars = 0;
+  saveData(); updateHero();
+  showAuthScreen(true);
+}
+
+async function onUserSignedIn(user) {
+  currentUser = user;
+  const email = user.email;
+  const childName = user.user_metadata?.child_name;
+  // If signup provided a child name, update CFG
+  if (childName && childName !== CFG.name) {
+    CFG.name = childName;
+    saveConfig();
+    document.getElementById('cfg-name').value = childName;
+    document.getElementById('heroNameTitle').textContent = childName;
+  }
+  const cfgEmail = document.getElementById('cfg-account-email');
+  if (cfgEmail) cfgEmail.textContent = email;
+  setSyncStatus('ok', '🟢 Conectado');
+  showAuthScreen(false);
+  await loadCloudData();
+}
+
+async function loadCloudData() {
+  if (!sbClient || !currentUser) return;
+  try {
+    const {data, error} = await sbClient
+      .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50);
+    if (error) throw error;
+    sessions = data || [];
+    const cloudStars = sessions.reduce((sum, s) => sum + (s.stars || s.correct || 0), 0);
+    state.stars = Math.max(state.stars, cloudStars);
+    saveData(); updateHero();
+    setSyncStatus('ok', `🟢 ${sessions.length} sesiones · ⭐${totalStars()}`);
+    await loadWordDBFromSupabase();
+    updateHistorialTab();
+  } catch(e) {
+    console.error('loadCloudData:', e);
+    setSyncStatus('err', '🔴 ' + (e.message || 'Error'));
+  }
+}
+
+function initSupabase() {
+  sbClient = supabase.createClient(SB_URL, SB_KEY);
+  sbClient.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      await onUserSignedIn(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      showAuthScreen(true);
+    }
+  });
 }
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1540,6 +1664,7 @@ async function saveSession() {
   if(state.correct===0&&state.wrong===0){alert('¡Jugá un poco primero antes de guardar!');return;}
   const total=state.correct+state.wrong;
   const record={
+    user_id:  currentUser?.id,
     fecha:    state.sessionStart,
     correct:  state.correct,
     wrong:    state.wrong,
@@ -1718,13 +1843,16 @@ async function deleteAllHistory() {
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-async function init() {
+function init() {
   loadConfig();
   initWordDB();
   loadData();
   updateHero();
   updateSessionTab();
-  await initSupabase();
+  // initSupabase sets up the auth listener; onAuthStateChange fires immediately
+  // if there's an existing session, hiding the auth screen and loading data.
+  // If no session, auth screen stays visible.
+  initSupabase();
 }
 
 init();
