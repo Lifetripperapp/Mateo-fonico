@@ -149,7 +149,8 @@
   .phrase-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 6px;}
   .pw{padding:7px 14px;border-radius:12px;font-family:'Fredoka One',cursive;font-size:1rem;transition:all 0.35s;}
   .pw-done{background:rgba(78,205,196,0.2);color:var(--green);border:2px solid var(--green);}
-  .pw-active{background:rgba(245,166,35,0.2);color:var(--gold);border:2px solid var(--gold);animation:pulse 1.5s ease-in-out infinite;}
+  .pw-active{background:rgba(245,166,35,0.2);color:var(--gold);border:2px solid var(--gold);animation:pwPulse 1.5s ease-in-out infinite;}
+  @keyframes pwPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,0.4)}50%{box-shadow:0 0 0 6px rgba(245,166,35,0)}}
   .pw-pending{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.2);border:2px dashed rgba(255,255,255,0.12);}
   .phrase-step-label{text-align:center;font-size:0.8rem;color:rgba(255,255,255,0.45);margin-bottom:10px;}
 
@@ -754,26 +755,26 @@ const DEFAULT_WORDS = { es: [
     {word:'IMAGINATION',  emoji:'💭',  syllables:['I','MAG','I','NA','TION']},
     {word:'CELEBRATION',  emoji:'🎉',  syllables:['CEL','E','BRA','TION']},
     {word:'THERMOMETER',  emoji:'🌡️', syllables:['THER','MOM','E','TER']},
-    {word:'STRAWBERRY',   emoji:'🍓',  syllables:['STRAW','BER','RY']},
+    {word:'VOCABULARY',   emoji:'📖',  syllables:['VO','CAB','U','LAR','Y']},
     {word:'AMBULANCE',    emoji:'🚑',  syllables:['AM','BU','LANCE']},
   ],
   // ── Tier 3 EN: Step-by-step phrase building ──
   [
-    {word:'THE MONKEY RUNS',  emoji:'🐒', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'MON-KEY',syls:['MON','KEY']},{w:'RUNS',syls:['RUNS']}]},
-    {word:'MY TURTLE SWIMS',  emoji:'🐢', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'TUR-TLE',syls:['TUR','TLE']},{w:'SWIMS',syls:['SWIMS']}]},
-    {word:'THE PUPPY PLAYS',  emoji:'🐶', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'PUP-PY',syls:['PUP','PY']},{w:'PLAYS',syls:['PLAYS']}]},
-    {word:'I SEE A ROBOT',    emoji:'🤖', isStepPhrase:true, words:[{w:'I',syls:['I']},{w:'SEE',syls:['SEE']},{w:'A',syls:['A']},{w:'RO-BOT',syls:['RO','BOT']}]},
-    {word:'THE TIGER IS BIG', emoji:'🐯', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'TI-GER',syls:['TI','GER']},{w:'IS',syls:['IS']},{w:'BIG',syls:['BIG']}]},
-    {word:'MY BUNNY HOPS',    emoji:'🐰', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'BUN-NY',syls:['BUN','NY']},{w:'HOPS',syls:['HOPS']}]},
-    {word:'THE LEMON IS SOUR',emoji:'🍋', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'LEM-ON',syls:['LEM','ON']},{w:'IS',syls:['IS']},{w:'SOUR',syls:['SOUR']}]},
-    {word:'I LOVE MY MAMA',   emoji:'❤️', isStepPhrase:true, words:[{w:'I',syls:['I']},{w:'LOVE',syls:['LOVE']},{w:'MY',syls:['MY']},{w:'MA-MA',syls:['MA','MA']}]},
-    {word:'THE FLOWER IS PINK',emoji:'🌸',isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'FLOW-ER',syls:['FLOW','ER']},{w:'IS',syls:['IS']},{w:'PINK',syls:['PINK']}]},
-    {word:'MY PENCIL IS BLUE',emoji:'✏️', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'PEN-CIL',syls:['PEN','CIL']},{w:'IS',syls:['IS']},{w:'BLUE',syls:['BLUE']}]},
-    {word:'THE FISH SWIMS FAST',emoji:'🐟',isStepPhrase:true,words:[{w:'THE',syls:['THE']},{w:'FISH',syls:['FISH']},{w:'SWIMS',syls:['SWIMS']},{w:'FAST',syls:['FAST']}]},
-    {word:'A HAPPY BABY',     emoji:'👶', isStepPhrase:true, words:[{w:'A',syls:['A']},{w:'HAP-PY',syls:['HAP','PY']},{w:'BA-BY',syls:['BA','BY']}]},
-    {word:'THE ROBOT WALKS',  emoji:'🤖', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'RO-BOT',syls:['RO','BOT']},{w:'WALKS',syls:['WALKS']}]},
-    {word:'WE GO TO SCHOOL',  emoji:'🏫', isStepPhrase:true, words:[{w:'WE',syls:['WE']},{w:'GO',syls:['GO']},{w:'TO',syls:['TO']},{w:'SCHOOL',syls:['SCHOOL']}]},
-    {word:'MY CAT IS SUNNY',  emoji:'🐱', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'CAT',syls:['CAT']},{w:'IS',syls:['IS']},{w:'SUN-NY',syls:['SUN','NY']}]},
+    {word:'THE MONKEY RUNS',   emoji:'🐒', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'MONKEY',syls:['MON','KEY']},{w:'RUNS',syls:['RUNS']}]},
+    {word:'MY TURTLE SWIMS',   emoji:'🐢', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'TURTLE',syls:['TUR','TLE']},{w:'SWIMS',syls:['SWIMS']}]},
+    {word:'THE PUPPY PLAYS',   emoji:'🐶', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'PUPPY',syls:['PUP','PY']},{w:'PLAYS',syls:['PLAYS']}]},
+    {word:'I SEE A ROBOT',     emoji:'🤖', isStepPhrase:true, words:[{w:'I',syls:['I']},{w:'SEE',syls:['SEE']},{w:'A',syls:['A']},{w:'ROBOT',syls:['RO','BOT']}]},
+    {word:'THE TIGER IS BIG',  emoji:'🐯', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'TIGER',syls:['TI','GER']},{w:'IS',syls:['IS']},{w:'BIG',syls:['BIG']}]},
+    {word:'MY BUNNY HOPS',     emoji:'🐰', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'BUNNY',syls:['BUN','NY']},{w:'HOPS',syls:['HOPS']}]},
+    {word:'THE LEMON IS SOUR', emoji:'🍋', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'LEMON',syls:['LEM','ON']},{w:'IS',syls:['IS']},{w:'SOUR',syls:['SOUR']}]},
+    {word:'I LOVE MY MAMA',    emoji:'❤️', isStepPhrase:true, words:[{w:'I',syls:['I']},{w:'LOVE',syls:['LOVE']},{w:'MY',syls:['MY']},{w:'MAMA',syls:['MA','MA']}]},
+    {word:'THE FLOWER IS PINK',emoji:'🌸', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'FLOWER',syls:['FLOW','ER']},{w:'IS',syls:['IS']},{w:'PINK',syls:['PINK']}]},
+    {word:'MY PENCIL IS BLUE', emoji:'✏️', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'PENCIL',syls:['PEN','CIL']},{w:'IS',syls:['IS']},{w:'BLUE',syls:['BLUE']}]},
+    {word:'THE FISH SWIMS FAST',emoji:'🐟',isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'FISH',syls:['FISH']},{w:'SWIMS',syls:['SWIMS']},{w:'FAST',syls:['FAST']}]},
+    {word:'A HAPPY BABY',      emoji:'👶', isStepPhrase:true, words:[{w:'A',syls:['A']},{w:'HAPPY',syls:['HAP','PY']},{w:'BABY',syls:['BA','BY']}]},
+    {word:'THE ROBOT WALKS',   emoji:'🤖', isStepPhrase:true, words:[{w:'THE',syls:['THE']},{w:'ROBOT',syls:['RO','BOT']},{w:'WALKS',syls:['WALKS']}]},
+    {word:'WE GO TO SCHOOL',   emoji:'🏫', isStepPhrase:true, words:[{w:'WE',syls:['WE']},{w:'GO',syls:['GO']},{w:'TO',syls:['TO']},{w:'SCHOOL',syls:['SCHOOL']}]},
+    {word:'MY CAT IS SUNNY',   emoji:'🐱', isStepPhrase:true, words:[{w:'MY',syls:['MY']},{w:'CAT',syls:['CAT']},{w:'IS',syls:['IS']},{w:'SUNNY',syls:['SUN','NY']}]},
   ]
 ] };
 
@@ -1203,11 +1204,14 @@ function renderWordList() {
   list.forEach((item, idx) => {
     const row = document.createElement('div');
     row.className = 'wl-item';
+    const sylsPreview = item.isStepPhrase
+      ? item.words.map(wd => wd.syls.join('-')).join(' | ')
+      : (item.syllables || []).join(' · ');
     row.innerHTML = `
       <span style="font-size:1.3rem;flex-shrink:0">${item.emoji}</span>
       <div class="wl-item-info">
         <div class="wl-item-word">${item.word}</div>
-        <div class="wl-item-syls">${item.syllables.join(' · ')}</div>
+        <div class="wl-item-syls">${sylsPreview}</div>
       </div>
       <button class="wl-edit-btn" onclick="openWordEdit(${idx})">✏️ Editar</button>`;
     container.appendChild(row);
@@ -1217,13 +1221,23 @@ function renderWordList() {
 function openWordEdit(idx) {
   wordEditIdx = idx;
   const isNew = idx === -1;
+  const isPhraseTier = wlState.tier === 3;
   document.getElementById('weTitle').textContent = isNew ? '➕ Nueva entrada' : '✏️ Editar entrada';
   document.getElementById('weDeleteBtn').style.display = isNew ? 'none' : 'inline-block';
+  // Update hint text for tier 3
+  const sylHint = document.querySelector('#modal-word-edit .we-input + div');
+  if (sylHint) sylHint.textContent = isPhraseTier
+    ? 'Para frases: cada palabra con sus sílabas separadas por / — Ej: EL/PA,TO/NA,DA'
+    : 'Ej: PA,TO — sílabas separadas por coma';
   if (!isNew) {
     const item = wordDB[wlState.lang][wlState.tier][idx];
-    document.getElementById('we-emoji').value     = item.emoji;
-    document.getElementById('we-word').value      = item.word;
-    document.getElementById('we-syllables').value = item.syllables.join(',');
+    document.getElementById('we-emoji').value = item.emoji;
+    document.getElementById('we-word').value  = item.word;
+    if (item.isStepPhrase) {
+      document.getElementById('we-syllables').value = item.words.map(wd => wd.syls.join(',')).join('/');
+    } else {
+      document.getElementById('we-syllables').value = (item.syllables||[]).join(',');
+    }
   } else {
     document.getElementById('we-emoji').value     = '';
     document.getElementById('we-word').value      = '';
@@ -1232,21 +1246,34 @@ function openWordEdit(idx) {
   document.getElementById('modal-word-edit').classList.add('open');
 }
 
-async function wordEditSave() {
+function wordEditSave() {
   const { lang, tier } = wlState;
-  const emoji     = document.getElementById('we-emoji').value.trim() || '📝';
-  const word      = document.getElementById('we-word').value.trim().toUpperCase();
-  const syllables = document.getElementById('we-syllables').value.trim().toUpperCase()
-                      .split(',').map(s=>s.trim()).filter(Boolean);
-  if (!word || !syllables.length) { alert('Completá la palabra y las sílabas/palabras'); return; }
-  const isPhrase = tier === 3;
-  const item = { emoji, word, syllables, ...(isPhrase ? {isPhrase:true} : {}) };
+  const emoji   = document.getElementById('we-emoji').value.trim() || '📝';
+  const word    = document.getElementById('we-word').value.trim().toUpperCase();
+  const rawSyls = document.getElementById('we-syllables').value.trim().toUpperCase();
+  if (!word || !rawSyls) { alert('Completá la palabra y las sílabas'); return; }
+  let item;
+  if (tier === 3) {
+    // Format: "EL/PA,TO/NA,DA" → words:[{w:'EL',syls:['EL']},{w:'PATO',syls:['PA','TO']},...]
+    const wordParts  = word.split(' ').filter(Boolean);
+    const sylGroups  = rawSyls.split('/').map(g => g.split(',').map(s=>s.trim()).filter(Boolean));
+    if (sylGroups.length !== wordParts.length) {
+      alert(`La frase tiene ${wordParts.length} palabras pero diste ${sylGroups.length} grupos de sílabas.\nUsá / para separar palabras.\nEj para "EL PATO NADA": EL/PA,TO/NA,DA`);
+      return;
+    }
+    const words = wordParts.map((w,i) => ({w, syls: sylGroups[i]}));
+    item = { emoji, word, isStepPhrase:true, words };
+  } else {
+    const syllables = rawSyls.split(',').map(s=>s.trim()).filter(Boolean);
+    if (!syllables.length) { alert('Agregá al menos una sílaba'); return; }
+    item = { emoji, word, syllables };
+  }
   if (wordEditIdx === -1) {
     wordDB[lang][tier].push(item);
   } else {
     wordDB[lang][tier][wordEditIdx] = item;
   }
-  await saveWordDB();
+  saveWordDB();
   closeModal('word-edit');
   renderWordList();
 }
@@ -1531,6 +1558,9 @@ async function saveSession() {
     sessions.unshift({...record, id:Date.now(), created_at:new Date().toISOString()});
   }
 
+  // Recalculate total stars from full session history so tier/hero stay accurate
+  state.stars = sessions.reduce((sum, s) => sum + (s.stars || 0), 0);
+  updateHero();
   saveData();
   confetti();
   resetSessionCounters();
