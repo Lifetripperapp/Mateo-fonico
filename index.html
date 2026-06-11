@@ -1690,7 +1690,9 @@ async function deleteSession() {
     try{ await sbClient.from('sesiones').delete().eq('id',s.id); }catch(e){}
   }
   sessions.splice(selectedSessionIdx,1);
+  state.stars = sessions.reduce((sum, s) => sum + (s.stars || s.correct || 0), 0);
   saveData();
+  updateHero();
   closeModal('detail');
   updateHistorialTab();
 }
