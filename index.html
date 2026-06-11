@@ -370,7 +370,9 @@
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
         <button class="play-btn danger" onclick="confirmResetRPG()" style="font-size:0.85rem;padding:10px 16px;">⚠️ Borrar historial</button>
         <button class="play-btn ghost" onclick="doSignOut()" style="font-size:0.85rem;padding:10px 16px;">🚪 Cerrar sesión</button>
+        <button class="play-btn ghost" onclick="runDiagnostic()" style="font-size:0.85rem;padding:10px 16px;">🔍 Diagnóstico</button>
       </div>
+      <div id="diag-panel" style="display:none;margin-top:12px;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;font-size:0.75rem;font-family:monospace;color:rgba(255,255,255,0.8);white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;"></div>
     </div>
 
     <!-- IDIOMA -->
@@ -1081,6 +1083,70 @@ function translateAuthError(msg) {
   return msg;
 }
 
+async function runDiagnostic() {
+  const panel = document.getElementById('diag-panel');
+  panel.style.display = 'block';
+  panel.textContent = '⏳ Ejecutando diagnóstico...\n';
+
+  const log = (msg) => { panel.textContent += msg + '\n'; panel.scrollTop = panel.scrollHeight; };
+
+  // 1. sbClient
+  log('sbClient: ' + (sbClient ? '✅ inicializado' : '❌ NULL'));
+
+  // 2. currentUser
+  log('currentUser: ' + (currentUser ? '✅ ' + currentUser.id + ' (' + currentUser.email + ')' : '❌ NULL'));
+
+  // 3. Get session from Supabase SDK
+  if(sbClient){
+    try{
+      const {data, error} = await sbClient.auth.getSession();
+      const s = data?.session;
+      if(s){
+        const expiry = new Date(s.expires_at * 1000);
+        const expired = expiry < new Date();
+        log('SDK session: ✅ user=' + s.user.id + ' expires=' + expiry.toLocaleString() + (expired ? ' ❌ EXPIRADA' : ' ✅'));
+        log('access_token: ' + s.access_token.substring(0,30) + '...');
+        if(!currentUser) {
+          log('⚠️ PROBLEMA: SDK tiene sesión pero currentUser es null — re-asignando...');
+          currentUser = s.user;
+          log('currentUser reasignado: ' + currentUser.id);
+        }
+      } else {
+        log('SDK session: ❌ NULL — ' + (error?.message || 'no hay sesión'));
+      }
+    }catch(e){ log('getSession error: ' + e.message); }
+
+    // 4. Test SELECT
+    try{
+      const {data, error} = await sbClient.from('sesiones').select('count').limit(1);
+      log('SELECT test: ' + (error ? '❌ ' + (error.message||JSON.stringify(error)) : '✅ ok'));
+    }catch(e){ log('SELECT error: ' + e.message); }
+
+    // 5. Test INSERT (with rollback)
+    if(currentUser){
+      const testRecord = {
+        user_id: currentUser.id, fecha: Date.now(), correct: 0, wrong: 0,
+        total: 0, pct: 0, stars: 0, streak: 0, games: 0, duration: 0
+      };
+      try{
+        const {data, error} = await sbClient.from('sesiones').insert([testRecord]).select();
+        if(error) throw error;
+        log('INSERT test: ✅ id=' + data[0].id);
+        // cleanup
+        await sbClient.from('sesiones').delete().eq('id', data[0].id);
+        log('DELETE test (cleanup): ✅');
+      }catch(e){
+        const msg = e?.message || e?.details || JSON.stringify(e);
+        log('INSERT test: ❌ ' + msg);
+      }
+    } else {
+      log('INSERT test: ⏭️ omitido (currentUser es null)');
+    }
+  }
+
+  log('─── Diagnóstico completo ───');
+}
+
 async function doSignOut() {
   await sbClient.auth.signOut();
   currentUser = null;
@@ -1699,8 +1765,9 @@ async function saveSession() {
       if(!error){ setSyncStatus('ok','🟢 Guardado en nube'); savedToCloud=true; }
       else throw error;
     } catch(e){
-      console.error(e);
-      setSyncStatus('err','🔴 Error al guardar — guardado local');
+      const msg = e?.message || e?.details || JSON.stringify(e);
+      console.error('saveSession error:', msg, e);
+      setSyncStatus('err','🔴 Error nube: ' + msg + ' (guardado local)');
     }
     if(savedToCloud){
       // Re-fetch to keep list accurate
@@ -1836,8 +1903,12 @@ function openSessionDetail(idx) {
 async function deleteSession() {
   if(selectedSessionIdx===null) return;
   const s=sessions[selectedSessionIdx];
-  if(sbClient && s.id){
-    try{ await sbClient.from('sesiones').delete().eq('id',s.id); }catch(e){}
+  if(sbClient && currentUser && s.id){
+    try{
+      const {error} = await sbClient.from('sesiones').delete().eq('id',s.id);
+      if(error){ const msg=error?.message||JSON.stringify(error); console.error('deleteSession:',msg); setSyncStatus('err','🔴 '+msg); }
+      else setSyncStatus('ok','🟢 Sesión borrada');
+    }catch(e){ console.error('deleteSession:',e); }
   }
   sessions.splice(selectedSessionIdx,1);
   state.stars = sessions.reduce((sum, s) => sum + (s.stars || s.correct || 0), 0);
@@ -1857,13 +1928,14 @@ async function deleteAllHistory() {
     try{
       const {error} = await sbClient.from('sesiones').delete().eq('user_id', currentUser.id);
       if(error) throw error;
-      setSyncStatus('ok','🟢 Historial borrado');
+      setSyncStatus('ok','🟢 Historial borrado en la nube');
     } catch(e){
-      console.error('deleteAllHistory:', e);
-      setSyncStatus('err','🔴 Error al borrar: ' + (e.message || JSON.stringify(e)));
-      return; // don't clear local state if cloud delete failed
+      const msg = e?.message || e?.details || JSON.stringify(e);
+      console.error('deleteAllHistory error:', msg, e);
+      setSyncStatus('err','🔴 Error nube: ' + msg + ' (borrado local igual)');
     }
   }
+  // Always clear local state regardless of cloud result
   sessions=[]; state.stars=0; state.correct=0;
   saveData(); updateHero(); updateHistorialTab();
 }
