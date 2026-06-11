@@ -1519,18 +1519,19 @@ async function wordEditDelete() {
 }
 
 // ─── SÍLABAS ──────────────────────────────────────────────────────────────────
-let phraseWordIdx  = 0;   // palabra actual en modo frase paso a paso
-let phraseBuilt    = [];  // palabras ya construidas
+let phraseWordIdx  = 0;
+let phraseBuilt    = [];
+let silabaWordList = [];  // cached — avoids re-shuffle on each getCurrentEntry call
 
 function initSilaba() {
-  const list=getWordList(getTier());
-  currentSilaba=Math.floor(Math.random()*list.length);
+  silabaWordList=getWordList(getTier());
+  currentSilaba=Math.floor(Math.random()*silabaWordList.length);
   selectedSyllables=[]; phraseWordIdx=0; phraseBuilt=[];
   renderSilaba();
 }
 function nextSilaba() {
-  const list=getWordList(getTier());
-  currentSilaba=Math.floor(Math.random()*list.length);
+  silabaWordList=getWordList(getTier());
+  currentSilaba=Math.floor(Math.random()*silabaWordList.length);
   selectedSyllables=[]; phraseWordIdx=0; phraseBuilt=[];
   renderSilaba();
 }
@@ -1541,8 +1542,8 @@ function resetSilaba() {
 }
 
 function getCurrentEntry() {
-  const list=getWordList(getTier());
-  return list[currentSilaba % list.length];
+  if (!silabaWordList.length) silabaWordList=getWordList(getTier());
+  return silabaWordList[currentSilaba % silabaWordList.length];
 }
 
 function renderSilaba() {
