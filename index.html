@@ -1050,7 +1050,17 @@ async function doAuth() {
       });
     }
     if (result.error) throw result.error;
-    // onAuthStateChange handles the rest
+    if (authMode === 'signup') {
+      // Supabase sends a confirmation email — tell the user
+      btn.disabled = false;
+      btn.textContent = '📧 Revisá tu email';
+      showAuthError('✅ Cuenta creada. Revisá tu email y hacé clic en el link de confirmación para ingresar.');
+      document.getElementById('authError').style.background = 'rgba(78,205,196,0.15)';
+      document.getElementById('authError').style.borderColor = 'rgba(78,205,196,0.4)';
+      document.getElementById('authError').style.color = 'var(--green)';
+      return;
+    }
+    // login: onAuthStateChange handles the rest
   } catch(e) {
     showAuthError(translateAuthError(e.message));
     btn.disabled = false;
