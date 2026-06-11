@@ -1543,7 +1543,8 @@ function renderSilaba() {
   const w=getCurrentEntry();
   if (w.isStepPhrase) { renderSilabaStepPhrase(w); return; }
   // ── Modo palabra simple ──
-  document.getElementById('silabaTarget').innerHTML=`Armá la palabra: <strong style="color:var(--gold);font-size:1.1rem">${w.emoji} ${w.word}</strong>`;
+  const showEmoji = getTier() < 2;
+  document.getElementById('silabaTarget').innerHTML=`Armá la palabra: <strong style="color:var(--gold);font-size:${showEmoji?'1.1rem':'1.4rem'}">${showEmoji?w.emoji+' ':''}${w.word}</strong>`;
   const slots=document.getElementById('wordSlots');
   slots.innerHTML='';
   w.syllables.forEach((_,i)=>{
@@ -1635,7 +1636,7 @@ function selectSylaba(card, syl) {
           }, 700);
         }
       } else {
-        fb.textContent=`¡${w.emoji} ${w.word}! ¡Lo armaste! 🎉`;
+        fb.textContent=`¡${getTier()<2?w.emoji+' ':''}${w.word}! ¡Lo armaste! 🎉`;
         fb.className='feedback show ok';
         addStar(300,400);
         document.getElementById('nextSilabaBtn').style.display='inline-block';
@@ -1659,14 +1660,14 @@ function completePhraseMode(w) {
   const fullPhrase = w.words.map(wd=>wd.w).join(' ');
   document.getElementById('silabaTarget').innerHTML =
     `<div style="text-align:center;padding:10px 0">
-      <div style="font-size:3rem;margin-bottom:8px">${w.emoji}</div>
+      ${getTier()<2?`<div style="font-size:3rem;margin-bottom:8px">${w.emoji}</div>`:''}
       <div style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--gold);line-height:1.3">${fullPhrase}</div>
       <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-top:6px">¡Frase completa! 🎉</div>
     </div>`;
   document.getElementById('wordSlots').innerHTML='';
   document.getElementById('silabaPieces').innerHTML='';
   const fb = document.getElementById('silabaFeedback');
-  fb.textContent = `¡${w.emoji} ${w.word}! ¡Lo leíste! 🌟`;
+  fb.textContent = `¡${getTier()<2?w.emoji+' ':''}${w.word}! ¡Lo leíste! 🌟`;
   fb.className='feedback show ok';
   document.getElementById('nextSilabaBtn').style.display='inline-block';
 }
@@ -1683,7 +1684,7 @@ function newAutoMision() {
   do{idx=Math.floor(Math.random()*pool.length);}while(idx===lastAutoMision&&pool.length>1);
   lastAutoMision=idx;
   const m=pool[idx];
-  document.getElementById('autoEmoji').textContent=m.emoji;
+  document.getElementById('autoEmoji').textContent=getTier()<2?m.emoji:'';
   document.getElementById('autoMisionTitle').textContent=m.title;
   document.getElementById('autoMisionText').textContent=m.text;
 }
