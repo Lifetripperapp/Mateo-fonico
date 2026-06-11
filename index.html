@@ -1851,11 +1851,21 @@ function showDeleteAllConfirm()  { document.getElementById('deleteAllConfirm').c
 function hideDeleteAllConfirm()  { document.getElementById('deleteAllConfirm').classList.remove('show'); }
 
 async function deleteAllHistory() {
+  hideDeleteAllConfirm();
   if(sbClient && currentUser){
-    try{ await sbClient.from('sesiones').delete().eq('user_id', currentUser.id); }catch(e){}
+    setSyncStatus('off','🔄 Borrando…');
+    try{
+      const {error} = await sbClient.from('sesiones').delete().eq('user_id', currentUser.id);
+      if(error) throw error;
+      setSyncStatus('ok','🟢 Historial borrado');
+    } catch(e){
+      console.error('deleteAllHistory:', e);
+      setSyncStatus('err','🔴 Error al borrar: ' + (e.message || JSON.stringify(e)));
+      return; // don't clear local state if cloud delete failed
+    }
   }
   sessions=[]; state.stars=0; state.correct=0;
-  saveData(); updateHero(); hideDeleteAllConfirm(); updateHistorialTab();
+  saveData(); updateHero(); updateHistorialTab();
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
