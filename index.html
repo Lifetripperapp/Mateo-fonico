@@ -969,8 +969,10 @@ async function initSupabase() {
       .from('sesiones').select('*').order('fecha', {ascending:false}).limit(50);
     if (error) throw error;
     sessions = data || [];
-    // Recalculate stars from cloud history so tier/level is always accurate
-    state.stars = sessions.reduce((sum, s) => sum + (s.stars || 0), 0);
+    // Recalculate stars from cloud history; keep localStorage value if it's higher
+    // (user may have earned stars in a session not yet saved to Supabase)
+    const cloudStars = sessions.reduce((sum, s) => sum + (s.stars || s.correct || 0), 0);
+    state.stars = Math.max(state.stars, cloudStars);
     saveData();
     updateHero();
     setSyncStatus('ok', `🟢 ${sessions.length} sesiones · ⭐${state.stars}`);
@@ -1540,20 +1542,26 @@ async function saveSession() {
     duration: Date.now()-state.sessionStart
   };
 
+  let savedToCloud = false;
   if(sbClient){
     try{
       const {error}=await sbClient.from('sesiones').insert([record]);
-      if(!error) setSyncStatus('ok','🟢 Guardado en nube');
+      if(!error){ setSyncStatus('ok','🟢 Guardado en nube'); savedToCloud=true; }
       else throw error;
     } catch(e){
       console.error(e);
-      setSyncStatus('err','🔴 Error al guardar');
+      setSyncStatus('err','🔴 Error al guardar — guardado local');
     }
-    // Re-fetch to keep list accurate
-    try{
-      const {data}=await sbClient.from('sesiones').select('*').order('fecha',{ascending:false}).limit(50);
-      if(data) sessions=data;
-    }catch(e){}
+    if(savedToCloud){
+      // Re-fetch to keep list accurate
+      try{
+        const {data}=await sbClient.from('sesiones').select('*').order('fecha',{ascending:false}).limit(50);
+        if(data) sessions=data;
+      }catch(e){}
+    } else {
+      // Insert failed — keep session locally so stars aren't lost
+      sessions.unshift({...record, id:Date.now(), created_at:new Date().toISOString()});
+    }
   } else {
     sessions.unshift({...record, id:Date.now(), created_at:new Date().toISOString()});
   }
