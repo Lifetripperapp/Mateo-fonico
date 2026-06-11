@@ -246,7 +246,7 @@
       <div class="stat-box"><div class="val" id="s-streak" style="color:var(--purple)">0</div><div class="lbl">🔥 Racha</div></div>
     </div>
     <div class="stat-row">
-      <div class="stat-box"><div class="val" id="s-stars" style="color:var(--gold)">0</div><div class="lbl">⭐ Estrellas</div></div>
+      <div class="stat-box"><div class="val" id="s-stars" style="color:var(--gold)">0</div><div class="lbl">⭐ Esta sesión</div></div>
       <div class="stat-box"><div class="val" id="s-time" style="color:var(--green)">0m</div><div class="lbl">⏱️ Tiempo</div></div>
       <div class="stat-box"><div class="val" id="s-games" style="color:var(--purple)">0</div><div class="lbl">🎮 Rondas</div></div>
     </div>
@@ -326,7 +326,7 @@
       </div>
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
         <button class="play-btn" onclick="testSupabase()">🔗 Probar conexión</button>
-        <button class="play-btn ghost" onclick="confirmResetRPG()" style="font-size:0.85rem;padding:10px 16px;">⚠️ Resetear nivel y XP</button>
+        <button class="play-btn danger" onclick="confirmResetRPG()" style="font-size:0.85rem;padding:10px 16px;">⚠️ Borrar historial y nivel</button>
       </div>
     </div>
 
@@ -542,10 +542,13 @@ const levels = [
 // ─── GAME DATA (tiered by difficulty) ────────────────────────────────────────
 
 // getTier(): 0=básico(0-4★) 1=intermedio(5-14★) 2=avanzado(15-29★) 3=frases(30+★)
+function totalStars() { return state.stars + state.correct; }
+
 function getTier() {
-  if (state.stars >= 30) return 3;
-  if (state.stars >= 15) return 2;
-  if (state.stars >= 5)  return 1;
+  const t = totalStars();
+  if (t >= 30) return 3;
+  if (t >= 15) return 2;
+  if (t >= 5)  return 1;
   return 0;
 }
 const TIER_LABEL = ['🌱 Básico','⚡ Intermedio','🔥 Avanzado','📖 Frases'];
@@ -827,7 +830,7 @@ const misionesByTier = [
 const CADENA_POOL_BY_TIER = [
   ['SAPO','PATO','TORO','MESA','MANO','PUMA','LOMA','MASA','TOMA','MOTO'],
   ['LUNA','NUBE','ESTRELLA','AVIÓN','ARAÑA','PLATO','SALTO','BANANA','PELOTA','CAMISA'],
-  ['MARIPOSA','ELEFANTE','COCODRILO','DINOSAURIO','VENTANA','TORTUGA','CAMELLO','HELICÓPTERO','MURCIÉLAGO','CHOCOLATЕ']
+  ['MARIPOSA','ELEFANTE','COCODRILO','DINOSAURIO','VENTANA','TORTUGA','CAMELLO','HELICÓPTERO','MURCIÉLAGO','CHOCOLATE']
 ];
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
@@ -949,13 +952,14 @@ function loadConfig() {
   });
 }
 
-function confirmResetRPG() {
-  if (confirm('¿Resetear nivel y XP? El historial de sesiones no se borra.')) {
-    state.stars = 0;
-    saveData();
-    updateHero();
-    alert('Progreso reseteado.');
+async function confirmResetRPG() {
+  if (!confirm('¿Borrar TODO el historial y resetear el nivel a cero?\nEsta acción no se puede deshacer.')) return;
+  if(sbClient){
+    try{ await sbClient.from('sesiones').delete().neq('id',0); }catch(e){}
   }
+  sessions=[]; state.stars=0;
+  saveData(); updateHero(); updateHistorialTab();
+  alert('Historial y nivel reseteados.');
 }
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
@@ -1055,29 +1059,30 @@ function showTab(name, btn) {
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 function getCurrentLevel() {
+  const ts = totalStars();
   let idx=0;
-  for(let i=levels.length-1;i>=0;i--){if(state.stars>=levels[i].min){idx=i;break;}}
+  for(let i=levels.length-1;i>=0;i--){if(ts>=levels[i].min){idx=i;break;}}
   return levels[idx];
 }
 
 function updateHero() {
+  const ts=totalStars();
   const lvl=getCurrentLevel();
   document.getElementById('heroEmoji').textContent=lvl.emoji;
-  document.getElementById('starCount').textContent=state.stars;
+  document.getElementById('starCount').textContent=ts;
   document.getElementById('heroNameBar').textContent=CFG.name+' el '+lvl.name;
   const lvlIdx=levels.indexOf(lvl);
   const next=levels[Math.min(lvlIdx+1,levels.length-1)];
-  const progress=next.min>lvl.min?((state.stars-lvl.min)/(next.min-lvl.min))*100:100;
+  const progress=next.min>lvl.min?((ts-lvl.min)/(next.min-lvl.min))*100:100;
   document.getElementById('xpBar').style.width=Math.min(100,Math.max(4,progress))+'%';
   document.getElementById('xpText').textContent='Nivel '+(lvlIdx+1)+': '+lvl.name+' '+lvl.emoji;
 }
 
 function addStar(x, y) {
-  state.stars++;
+  // state.stars = historical (saved sessions only); state.correct = this session
   state.streak++;
   state.correct++;
   state.games++;
-  saveData();
   updateHero();
   const burst=document.createElement('div');
   burst.className='score-burst';
@@ -1124,11 +1129,12 @@ function openGame(name) {
 function closeModal(name) { document.getElementById('modal-'+name).classList.remove('open'); }
 
 // ─── FONEMA ───────────────────────────────────────────────────────────────────
-function initFonema()  { const t=getTier(); currentFonema=Math.floor(Math.random()*fonemasByTier[t].length); renderFonema(); }
-function nextFonema()  { const t=getTier(); currentFonema=Math.floor(Math.random()*fonemasByTier[t].length); renderFonema(); }
+function getFonTier() { return Math.min(getTier(), fonemasByTier.length-1); }
+function initFonema()  { const t=getFonTier(); currentFonema=Math.floor(Math.random()*fonemasByTier[t].length); renderFonema(); }
+function nextFonema()  { const t=getFonTier(); currentFonema=Math.floor(Math.random()*fonemasByTier[t].length); renderFonema(); }
 
 function renderFonema() {
-  const f=fonemasByTier[getTier()][currentFonema];
+  const f=fonemasByTier[getFonTier()][currentFonema];
   const disp=document.getElementById('gameLetterDisplay');
   disp.textContent=f.letter; disp.style.color=f.color;
   disp.style.animation='none'; void disp.offsetWidth;
@@ -1150,7 +1156,7 @@ function checkFonema(correct, btn, e, correctWord) {
   document.querySelectorAll('#fonemaOptions .option-btn').forEach(b=>{
     b.disabled=true;
     const w=b.querySelector('.opt-word').textContent;
-    if(fonemasByTier[getTier()][currentFonema].options.find(o=>o.word===w&&o.correct)) b.classList.add('correct');
+    if(fonemasByTier[getFonTier()][currentFonema].options.find(o=>o.word===w&&o.correct)) b.classList.add('correct');
   });
   const fb=document.getElementById('fonemaFeedback');
   if(correct){
@@ -1167,7 +1173,7 @@ function checkFonema(correct, btn, e, correctWord) {
   document.getElementById('nextFonemaBtn').style.display='inline-block';
 }
 
-function checkFonemaCurrentWord() { return fonemasByTier[getTier()][currentFonema]; }
+function checkFonemaCurrentWord() { return fonemasByTier[getFonTier()][currentFonema]; }
 
 // ─── WORD LIST EDITOR ────────────────────────────────────────────────────────
 let wlState = { lang:'es', tier:0, open:false };
@@ -1456,7 +1462,7 @@ function initAuto() {
   document.getElementById('autoEmoji').textContent='🎯';
 }
 function newAutoMision() {
-  const pool=misionesByTier[getTier()];
+  const pool=misionesByTier[Math.min(getTier(), misionesByTier.length-1)];
   let idx;
   do{idx=Math.floor(Math.random()*pool.length);}while(idx===lastAutoMision&&pool.length>1);
   lastAutoMision=idx;
@@ -1474,9 +1480,11 @@ function autoCorrect() {
 }
 
 // ─── CADENA ───────────────────────────────────────────────────────────────────
-function initCadena() { cadenaChain=[]; cadenaTurno=0; cadenaPool=shuffle(CADENA_POOL_BY_TIER[getTier()]); renderCadena(); }
 let cadenaPool=[];
-function cadenaReset() { cadenaChain=[]; cadenaTurno=0; cadenaPool=shuffle(CADENA_POOL_BY_TIER[getTier()]); renderCadena(); document.getElementById('cadenaFeedback').classList.remove('show'); }
+let cadenaTierSnapshot=-1;
+function getCadenaTier() { return Math.min(getTier(), CADENA_POOL_BY_TIER.length-1); }
+function initCadena() { cadenaChain=[]; cadenaTurno=0; cadenaTierSnapshot=getCadenaTier(); cadenaPool=shuffle(CADENA_POOL_BY_TIER[cadenaTierSnapshot]); renderCadena(); }
+function cadenaReset() { cadenaChain=[]; cadenaTurno=0; cadenaTierSnapshot=getCadenaTier(); cadenaPool=shuffle(CADENA_POOL_BY_TIER[cadenaTierSnapshot]); renderCadena(); document.getElementById('cadenaFeedback').classList.remove('show'); }
 
 function renderCadena() {
   document.getElementById('cadenaLastWord').textContent=cadenaChain.length?cadenaChain[cadenaChain.length-1]:'—';
@@ -1498,7 +1506,8 @@ function renderCadena() {
 }
 
 function cadenaAdd() {
-  if(!cadenaPool.length) cadenaPool=shuffle(CADENA_POOL_BY_TIER[getTier()]);
+  const ct=getCadenaTier();
+  if(!cadenaPool.length||ct!==cadenaTierSnapshot){cadenaTierSnapshot=ct;cadenaPool=shuffle(CADENA_POOL_BY_TIER[ct]);}
   cadenaChain.push(cadenaPool[cadenaChain.length % cadenaPool.length]);
   cadenaTurno=1-cadenaTurno;
   addStar(200,300);
@@ -1573,7 +1582,7 @@ async function saveSession() {
   confetti();
   resetSessionCounters();
   updateHistorialTab();
-  showTab('historial', document.querySelector('.tab:nth-child(3)'));
+  showTab('historial', document.querySelector('[onclick*="historial"]'));
 }
 
 function resetSessionCounters() {
